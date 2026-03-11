@@ -12,7 +12,13 @@ interface TimerProps {
 export function Timer({ duration, onTimeUp, isRunning, warningAt = 5 }: TimerProps) {
   const [remaining, setRemaining] = useState(duration);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onTimeUpRef = useRef(onTimeUp);
   const isWarning = remaining <= warningAt && remaining > 0;
+
+  // Keep callback ref fresh without causing effect re-runs
+  useEffect(() => {
+    onTimeUpRef.current = onTimeUp;
+  }, [onTimeUp]);
 
   const cleanup = useCallback(() => {
     if (intervalRef.current) {
@@ -31,7 +37,8 @@ export function Timer({ duration, onTimeUp, isRunning, warningAt = 5 }: TimerPro
       setRemaining((prev) => {
         if (prev <= 1) {
           cleanup();
-          onTimeUp();
+          // Schedule callback outside setState to avoid calling during render
+          queueMicrotask(() => onTimeUpRef.current());
           return 0;
         }
         return prev - 1;
@@ -39,7 +46,7 @@ export function Timer({ duration, onTimeUp, isRunning, warningAt = 5 }: TimerPro
     }, 1000);
 
     return cleanup;
-  }, [isRunning, cleanup, onTimeUp]);
+  }, [isRunning, cleanup]);
 
   // Reset when duration changes
   useEffect(() => {

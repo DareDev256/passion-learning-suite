@@ -58,7 +58,7 @@ export function addXP(amount: number, multiplier = 1): UserProgress {
 export function getRecallMultiplier(itemId: string): number {
   const current = getProgress();
   const score = current.itemScores[itemId];
-  if (!score || score.correct === 0) return 1; // First time
+  if (!score) return 1; // Never seen — first exposure, base XP
   const daysSinceLastSeen = (Date.now() - score.lastSeen) / (1000 * 60 * 60 * 24);
   if (daysSinceLastSeen >= 30) return 3;  // 30-day recall = 3x XP
   if (daysSinceLastSeen >= 7) return 2;   // 7-day recall = 2x XP
@@ -169,21 +169,34 @@ export function updateStreak(): UserProgress {
   const current = getProgress();
   const lastPlayed = localStorage.getItem(LAST_PLAYED_KEY);
   const today = new Date().toDateString();
-  const yesterday = new Date(Date.now() - 86400000).toDateString();
 
   let newStreak = current.streak;
   let freezesUsed = 0;
 
-  if (lastPlayed === yesterday) {
-    newStreak = current.streak + 1;
-  } else if (lastPlayed !== today) {
-    // Missed a day — try to use a streak freeze
-    if (current.streakFreezes > 0) {
-      freezesUsed = 1;
-      // Streak preserved, but no increment
+  if (lastPlayed === today) {
+    // Already played today — no change
+  } else if (lastPlayed) {
+    // Calculate actual days missed (not just "yesterday" check)
+    const lastDate = new Date(lastPlayed);
+    const todayDate = new Date(today);
+    const daysMissed = Math.round(
+      (todayDate.getTime() - lastDate.getTime()) / 86400000
+    ) - 1; // subtract 1: the gap between last played and today
+
+    if (daysMissed <= 0) {
+      // Played yesterday — extend streak
+      newStreak = current.streak + 1;
+    } else if (current.streakFreezes >= daysMissed) {
+      // Have enough freezes to cover the gap
+      freezesUsed = daysMissed;
+      newStreak = current.streak + 1; // Continue streak
     } else {
-      newStreak = 1; // Reset
+      // Not enough freezes — streak resets
+      newStreak = 1;
     }
+  } else {
+    // First time playing
+    newStreak = 1;
   }
 
   localStorage.setItem(LAST_PLAYED_KEY, today);
