@@ -1,0 +1,185 @@
+@import "tailwindcss";
+@import "@fontsource/press-start-2p";
+
+/* ─── THEME TOKENS ───
+   OVERRIDE these :root values per game.
+   Template uses neutral defaults. Each game defines its own palette. */
+:root {
+  --game-black: #0a0a0a;
+  --game-dark: #1a1a2e;
+  --game-primary: #00ff88;
+  --game-secondary: #ff00ff;
+  --game-accent: #00ffff;
+  --game-warning: #ffff00;
+  --game-error: #ff4444;
+  --game-success: #44ff44;
+}
+
+@theme inline {
+  --color-game-black: var(--game-black);
+  --color-game-dark: var(--game-dark);
+  --color-game-primary: var(--game-primary);
+  --color-game-secondary: var(--game-secondary);
+  --color-game-accent: var(--game-accent);
+  --color-game-warning: var(--game-warning);
+  --color-game-error: var(--game-error);
+  --color-game-success: var(--game-success);
+
+  --font-pixel: "Press Start 2P", monospace;
+
+  --animate-pulse-neon: pulse-neon 2s ease-in-out infinite;
+  --animate-scanline: scanline 8s linear infinite;
+  --animate-flicker: flicker 0.1s infinite;
+  --animate-blink: blink 1.5s step-end infinite;
+}
+
+@keyframes pulse-neon {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.95; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+body {
+  background-color: var(--game-black);
+  color: white;
+  font-family: "Press Start 2P", monospace;
+  min-height: 100vh;
+}
+
+/* CRT scanline overlay */
+.crt-overlay {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  z-index: 100;
+}
+
+/* Neon glow — works on any color via currentColor */
+.neon-glow {
+  text-shadow:
+    0 0 5px currentColor,
+    0 0 10px currentColor,
+    0 0 20px currentColor,
+    0 0 40px currentColor;
+}
+
+/* Pixel-style border using game-primary */
+.pixel-border {
+  border: 4px solid;
+  border-image: repeating-linear-gradient(
+    45deg,
+    var(--game-primary),
+    var(--game-primary) 2px,
+    transparent 2px,
+    transparent 4px
+  ) 4;
+}
+
+/* Retro button */
+.btn-retro {
+  font-family: "Press Start 2P", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.15s ease;
+}
+
+.btn-retro:hover {
+  transform: scale(1.05);
+}
+
+.btn-retro:active {
+  transform: scale(0.95);
+}
+
+/* Streak fire indicator */
+.streak-fire {
+  animation: pulse-neon 1s ease-in-out infinite;
+}
+
+/* XP bar fill animation */
+.xp-fill {
+  transition: width 0.5s ease-out;
+}
+
+/* ─── ACCESSIBILITY ─── */
+
+/* Visible focus indicators (WCAG 2.2) */
+:focus-visible {
+  outline: 3px solid var(--game-accent);
+  outline-offset: 2px;
+}
+
+/* Skip to content link (screen reader + keyboard users) */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  z-index: 200;
+  padding: 8px 16px;
+  background: var(--game-primary);
+  color: var(--game-black);
+  font-family: "Press Start 2P", monospace;
+  font-size: 10px;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Reduced motion — respect OS preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .crt-overlay {
+    display: none;
+  }
+
+  .neon-glow {
+    text-shadow: none;
+  }
+
+  .streak-fire {
+    animation: none;
+  }
+}
+
+/* Screen reader only (visually hidden but accessible) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
