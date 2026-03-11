@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0] - 2026-03-11
+
+### Added
+- Complete suite documentation: all 10 games with repo links, live URLs, and descriptions
+- 4 tech fundamentals games added to README: API Architect, Netrunner, CyberShield, Circuit Prophet
+- Per-game live deployment links for all 10 games
+- Getting Started section for scaffolding new games from template
+
+### Changed
+- README rewritten from 6-game spec overview to full 10-game suite showcase
+- License changed to MIT
+
 ## [0.1.1] - 2026-03-11
 
 ### Fixed
