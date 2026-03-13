@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.2] - 2026-03-13
+
+### Added
+- **Vitest test suite** for `storage.ts` persistence layer (29 tests)
+- Test coverage: XP system, recall multipliers, streak freezes, mastery gates, FSRS card CRUD, review queue fallback, learning analytics, reset
+- Edge cases: multi-day streak gaps, freeze consumption, analytics event trimming, duplicate level completion guard
+
+### Changed
+- Added `test` script to `package.json`
+- Added `vitest` as dev dependency
+
 ## [0.2.0] - 2026-03-11
 
 ### Added
