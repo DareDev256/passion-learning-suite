@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe)
-- **Testing**: Vitest (29 tests covering storage layer)
+- **Testing**: Vitest (33 tests covering storage layer)
 - **Deployment**: Vercel (all 10 games live)
 
 ## Shared Game Systems
@@ -84,7 +84,15 @@ npm install
 npm run dev
 ```
 
-Then customize `src/data/` with your curriculum and `src/app/page.tsx` with your game mechanics.
+Then configure your game's storage namespace and customize content:
+
+```ts
+// src/app/layout.tsx or top-level init
+import { configureStorage } from "@/lib/storage";
+configureStorage("my_game"); // namespaces all localStorage keys
+```
+
+Customize `src/data/` with your curriculum and `src/app/page.tsx` with your game mechanics.
 
 ## License
 

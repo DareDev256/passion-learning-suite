@@ -2,15 +2,21 @@ import { UserProgress } from "@/types/game";
 
 // ─── Passionate Learning — Persistence Layer ───
 // Pure functions over localStorage. SSR-safe. Merge-on-read for forward compat.
-// Each game sets its own GAME_ID to namespace storage keys.
+// Call configureStorage("my_game") once at app init to namespace all keys.
 
-const GAME_ID = "passionate_learning"; // OVERRIDE per game
-const STORAGE_KEY = `${GAME_ID}_progress`;
-const LAST_PLAYED_KEY = `${GAME_ID}_last_played`;
-const MASTERY_KEY = `${GAME_ID}_mastery`;
-const FSRS_KEY = `${GAME_ID}_fsrs_cards`;
-const STREAK_FREEZE_KEY = `${GAME_ID}_streak_freezes`;
-const ANALYTICS_KEY = `${GAME_ID}_analytics`;
+let gameId = "passionate_learning";
+
+export function configureStorage(id: string): void {
+  gameId = id;
+}
+
+export function getGameId(): string {
+  return gameId;
+}
+
+function storageKey(suffix: string): string {
+  return `${gameId}_${suffix}`;
+}
 
 const defaultProgress: UserProgress = {
   xp: 0,
@@ -25,7 +31,7 @@ const defaultProgress: UserProgress = {
 export function getProgress(): UserProgress {
   if (typeof window === "undefined") return defaultProgress;
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(storageKey("progress"));
     if (!stored) return defaultProgress;
     return { ...defaultProgress, ...JSON.parse(stored) };
   } catch {
@@ -35,7 +41,7 @@ export function getProgress(): UserProgress {
 
 export function saveProgress(progress: UserProgress): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  localStorage.setItem(storageKey("progress"), JSON.stringify(progress));
 }
 
 export function updateProgress(updates: Partial<UserProgress>): UserProgress {
@@ -119,7 +125,7 @@ export interface FSRSCard {
 export function getFSRSCards(): FSRSCard[] {
   if (typeof window === "undefined") return [];
   try {
-    const stored = localStorage.getItem(FSRS_KEY);
+    const stored = localStorage.getItem(storageKey("fsrs_cards"));
     return stored ? JSON.parse(stored) : [];
   } catch {
     return [];
@@ -135,7 +141,7 @@ export function saveFSRSCard(card: FSRSCard): void {
   } else {
     cards.push(card);
   }
-  localStorage.setItem(FSRS_KEY, JSON.stringify(cards));
+  localStorage.setItem(storageKey("fsrs_cards"), JSON.stringify(cards));
 }
 
 export function getDueItems(limit = 5): string[] {
@@ -167,7 +173,7 @@ export function getItemsForReview(limit = 5): string[] {
 export function updateStreak(): UserProgress {
   if (typeof window === "undefined") return getProgress();
   const current = getProgress();
-  const lastPlayed = localStorage.getItem(LAST_PLAYED_KEY);
+  const lastPlayed = localStorage.getItem(storageKey("last_played"));
   const today = new Date().toDateString();
 
   let newStreak = current.streak;
@@ -199,7 +205,7 @@ export function updateStreak(): UserProgress {
     newStreak = 1;
   }
 
-  localStorage.setItem(LAST_PLAYED_KEY, today);
+  localStorage.setItem(storageKey("last_played"), today);
   return updateProgress({
     streak: newStreak,
     streakFreezes: current.streakFreezes - freezesUsed,
@@ -217,12 +223,12 @@ interface MasteryAttempt {
 export function recordMasteryAttempt(levelKey: string, accuracy: number): void {
   if (typeof window === "undefined") return;
   try {
-    const stored = localStorage.getItem(MASTERY_KEY);
+    const stored = localStorage.getItem(storageKey("mastery"));
     const data: Record<string, MasteryAttempt[]> = stored ? JSON.parse(stored) : {};
     const attempts = data[levelKey] || [];
     attempts.push({ accuracy, timestamp: Date.now() });
     data[levelKey] = attempts.slice(-5);
-    localStorage.setItem(MASTERY_KEY, JSON.stringify(data));
+    localStorage.setItem(storageKey("mastery"), JSON.stringify(data));
   } catch {
     // Silently fail on storage errors
   }
@@ -231,7 +237,7 @@ export function recordMasteryAttempt(levelKey: string, accuracy: number): void {
 export function checkMastery(levelKey: string): boolean {
   if (typeof window === "undefined") return false;
   try {
-    const stored = localStorage.getItem(MASTERY_KEY);
+    const stored = localStorage.getItem(storageKey("mastery"));
     if (!stored) return false;
     const data: Record<string, MasteryAttempt[]> = JSON.parse(stored);
     const attempts = data[levelKey] || [];
@@ -257,12 +263,12 @@ export interface LearningEvent {
 export function recordLearningEvent(event: LearningEvent): void {
   if (typeof window === "undefined") return;
   try {
-    const stored = localStorage.getItem(ANALYTICS_KEY);
+    const stored = localStorage.getItem(storageKey("analytics"));
     const events: LearningEvent[] = stored ? JSON.parse(stored) : [];
     events.push(event);
     // Keep last 1000 events
     const trimmed = events.slice(-1000);
-    localStorage.setItem(ANALYTICS_KEY, JSON.stringify(trimmed));
+    localStorage.setItem(storageKey("analytics"), JSON.stringify(trimmed));
   } catch {
     // Silently fail
   }
@@ -279,7 +285,7 @@ export function getLearningAnalytics(): {
     return { totalItemsSeen: 0, itemsMastered: 0, averageTimeToMastery: 0, retentionRate7Day: 0, retentionRate30Day: 0 };
   }
   try {
-    const stored = localStorage.getItem(ANALYTICS_KEY);
+    const stored = localStorage.getItem(storageKey("analytics"));
     const events: LearningEvent[] = stored ? JSON.parse(stored) : [];
 
     const itemsSeen = new Set(events.map((e) => e.itemId));
@@ -288,15 +294,43 @@ export function getLearningAnalytics(): {
     const reviewAttempts7d = events.filter(
       (e) => (e.type === "review_correct" || e.type === "review_incorrect") && (e.daysSinceLastSeen || 0) >= 7
     );
+    const reviews30d = events.filter((e) => e.type === "review_correct" && (e.daysSinceLastSeen || 0) >= 30);
+    const reviewAttempts30d = events.filter(
+      (e) => (e.type === "review_correct" || e.type === "review_incorrect") && (e.daysSinceLastSeen || 0) >= 30
+    );
+
+    // Compute average time from first_correct to concept_mastered per item
+    const firstCorrectByItem = new Map<string, number>();
+    const masteredByItem = new Map<string, number>();
+    for (const e of events) {
+      if (e.type === "first_correct" && !firstCorrectByItem.has(e.itemId)) {
+        firstCorrectByItem.set(e.itemId, e.timestamp);
+      }
+      if (e.type === "concept_mastered") {
+        masteredByItem.set(e.itemId, e.timestamp);
+      }
+    }
+    const masteryDurations: number[] = [];
+    for (const [itemId, masteredAt] of masteredByItem) {
+      const firstAt = firstCorrectByItem.get(itemId);
+      if (firstAt !== undefined && masteredAt > firstAt) {
+        masteryDurations.push(masteredAt - firstAt);
+      }
+    }
+    const avgTimeToMastery = masteryDurations.length > 0
+      ? Math.round(masteryDurations.reduce((a, b) => a + b, 0) / masteryDurations.length)
+      : 0;
 
     return {
       totalItemsSeen: itemsSeen.size,
       itemsMastered: mastered.length,
-      averageTimeToMastery: 0, // Computed from first_correct to concept_mastered timestamps
+      averageTimeToMastery: avgTimeToMastery,
       retentionRate7Day: reviewAttempts7d.length > 0
         ? Math.round((reviews7d.length / reviewAttempts7d.length) * 100)
         : 0,
-      retentionRate30Day: 0, // Same pattern for 30-day window
+      retentionRate30Day: reviewAttempts30d.length > 0
+        ? Math.round((reviews30d.length / reviewAttempts30d.length) * 100)
+        : 0,
     };
   } catch {
     return { totalItemsSeen: 0, itemsMastered: 0, averageTimeToMastery: 0, retentionRate7Day: 0, retentionRate30Day: 0 };
@@ -305,9 +339,9 @@ export function getLearningAnalytics(): {
 
 export function resetProgress(): void {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(LAST_PLAYED_KEY);
-  localStorage.removeItem(MASTERY_KEY);
-  localStorage.removeItem(FSRS_KEY);
-  localStorage.removeItem(ANALYTICS_KEY);
+  localStorage.removeItem(storageKey("progress"));
+  localStorage.removeItem(storageKey("last_played"));
+  localStorage.removeItem(storageKey("mastery"));
+  localStorage.removeItem(storageKey("fsrs_cards"));
+  localStorage.removeItem(storageKey("analytics"));
 }

@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.1] - 2026-03-14
+
+### Changed
+- **Storage layer: configurable game ID** — Replaced hardcoded `GAME_ID` constant with `configureStorage(id)` + `getGameId()` API. Games call `configureStorage("my_game")` once at init instead of editing source. All localStorage keys now derived dynamically via `storageKey()` helper.
+- **Analytics: implemented stub metrics** — `averageTimeToMastery` now computed from `first_correct` → `concept_mastered` event timestamps per item. `retentionRate30Day` now computed from 30-day review events (was hardcoded to 0).
+- **Removed dead code** — Removed unused `STREAK_FREEZE_KEY` constant (streak freezes are stored inside the progress object, never had a separate key).
+
+### Added
+- 4 new tests: `configureStorage` namespace isolation, `averageTimeToMastery` computation, `retentionRate30Day` computation (33 total, up from 29)
+
 ## [0.1.2] - 2026-03-13
 
 ### Added

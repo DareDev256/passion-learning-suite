@@ -16,6 +16,8 @@ import {
   recordLearningEvent,
   getLearningAnalytics,
   resetProgress,
+  configureStorage,
+  getGameId,
 } from "@/lib/storage";
 
 // ─── localStorage mock ───
@@ -248,6 +250,48 @@ describe("learning analytics", () => {
     }
     const stored = JSON.parse(localStorageMock.getItem("passionate_learning_analytics")!);
     expect(stored).toHaveLength(1000);
+  });
+});
+
+// ─── Configurable Game ID ───
+describe("configureStorage", () => {
+  it("defaults to passionate_learning namespace", () => {
+    expect(getGameId()).toBe("passionate_learning");
+  });
+
+  it("switches localStorage namespace when configured", () => {
+    addXP(100);
+    expect(getProgress().xp).toBe(100);
+
+    configureStorage("other_game");
+    expect(getProgress().xp).toBe(0); // different namespace = fresh state
+
+    addXP(50);
+    expect(getProgress().xp).toBe(50);
+
+    // Restore default so other tests aren't affected
+    configureStorage("passionate_learning");
+    expect(getProgress().xp).toBe(100); // original namespace preserved
+  });
+});
+
+// ─── Analytics: averageTimeToMastery + retentionRate30Day ───
+describe("analytics computed metrics", () => {
+  it("computes averageTimeToMastery from first_correct → concept_mastered", () => {
+    recordLearningEvent({ type: "first_correct", itemId: "a", timestamp: 1000 });
+    recordLearningEvent({ type: "first_correct", itemId: "b", timestamp: 2000 });
+    recordLearningEvent({ type: "concept_mastered", itemId: "a", timestamp: 5000 }); // 4000ms
+    recordLearningEvent({ type: "concept_mastered", itemId: "b", timestamp: 8000 }); // 6000ms
+    const analytics = getLearningAnalytics();
+    expect(analytics.averageTimeToMastery).toBe(5000); // (4000+6000)/2
+  });
+
+  it("computes retentionRate30Day from 30-day review events", () => {
+    recordLearningEvent({ type: "review_correct", itemId: "a", timestamp: Date.now(), daysSinceLastSeen: 31 });
+    recordLearningEvent({ type: "review_incorrect", itemId: "b", timestamp: Date.now(), daysSinceLastSeen: 35 });
+    recordLearningEvent({ type: "review_correct", itemId: "c", timestamp: Date.now(), daysSinceLastSeen: 40 });
+    const analytics = getLearningAnalytics();
+    expect(analytics.retentionRate30Day).toBe(67); // 2/3 = 67%
   });
 });
 
