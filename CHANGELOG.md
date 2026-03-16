@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.2] - 2026-03-15
+
+### Fixed
+- **VictoryScreen timer rendering** — Time-based speed values now render as `m:ss` format instead of raw seconds. Detects time-based metrics via `speedLabel` pattern matching (e.g., "Time", "Elapsed"). Guards against NaN, negative, and Infinity values from corrupted timer state, rendering "—" as fallback.
+- **Timer division-by-zero** — `Timer` percentage bar now guards against `duration === 0` to prevent `NaN` width on the progress bar.
+
 ## [0.2.1] - 2026-03-14
 
 ### Changed

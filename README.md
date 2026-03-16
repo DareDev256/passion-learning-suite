@@ -33,7 +33,7 @@
 - **Animation**: Framer Motion
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
-- **Persistence**: localStorage (SSR-safe, generic `readStore`/`writeStore` helpers)
+- **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`)
 - **Testing**: Vitest (33 tests covering storage layer, all passing)
 - **Deployment**: Vercel (all 10 games live)
 

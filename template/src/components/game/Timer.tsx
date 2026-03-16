@@ -53,7 +53,7 @@ export function Timer({ duration, onTimeUp, isRunning, warningAt = 5 }: TimerPro
     setRemaining(duration);
   }, [duration]);
 
-  const pct = (remaining / duration) * 100;
+  const pct = duration > 0 ? (remaining / duration) * 100 : 0;
 
   return (
     <div className="w-full max-w-md mx-auto mb-4">

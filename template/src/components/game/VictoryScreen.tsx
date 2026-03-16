@@ -11,6 +11,21 @@ interface VictoryScreenProps {
   speedLabel?: string;   // "WPM", "Time", etc.
 }
 
+/** Format seconds as m:ss — guards against NaN, negative, and Infinity */
+function formatTime(seconds: number): string {
+  const safe = Number.isFinite(seconds) && seconds >= 0 ? Math.round(seconds) : 0;
+  const m = Math.floor(safe / 60);
+  const s = safe % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+/** Render speed value: mm:ss for time-based metrics, raw number for rate-based (WPM) */
+function renderSpeed(value: number, label: string): string {
+  if (!Number.isFinite(value) || value < 0) return "—";
+  const isTimeBased = /time|duration|elapsed|seconds?/i.test(label);
+  return isTimeBased ? formatTime(value) : String(Math.round(value));
+}
+
 export function VictoryScreen({
   results,
   onPlayAgain,
@@ -29,6 +44,8 @@ export function VictoryScreen({
     grade === "A" ? "text-game-primary" :
     grade === "B" ? "text-game-accent" :
     "text-game-error";
+
+  const displaySpeed = renderSpeed(results.speed, speedLabel);
 
   return (
     <motion.div
@@ -64,7 +81,7 @@ export function VictoryScreen({
           className="flex justify-between max-w-xs mx-auto font-pixel text-xs"
         >
           <span className="text-game-accent">{speedLabel.toUpperCase()}</span>
-          <span className="text-white">{results.speed}</span>
+          <span className="text-white">{displaySpeed}</span>
         </motion.div>
 
         <motion.div
