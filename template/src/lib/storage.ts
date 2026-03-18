@@ -4,10 +4,75 @@ import { UserProgress } from "@/types/game";
 // Pure functions over localStorage. SSR-safe. Merge-on-read for forward compat.
 // Call configureStorage("my_game") once at app init to namespace all keys.
 
+// ─── Security: Input Validation Helpers ───
+// Guards against localStorage injection, prototype pollution, and NaN propagation.
+// See: OWASP A03 (Injection), A08 (Data Integrity), CWE-20, CWE-502.
+
+const GAME_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
+
+function sanitizeGameId(id: string): string {
+  if (!GAME_ID_PATTERN.test(id)) {
+    throw new Error(
+      `Invalid game ID "${id}". Must be 1-64 alphanumeric/underscore/hyphen characters.`
+    );
+  }
+  return id;
+}
+
+/** Clamp a number to safe bounds, returning fallback on NaN/Infinity. */
+function safeNumber(value: unknown, fallback: number, min = -Infinity, max = Infinity): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.max(min, Math.min(max, value));
+}
+
+/** Strip __proto__ and constructor keys to prevent prototype pollution. */
+function stripDangerousKeys<T extends Record<string, unknown>>(obj: T): T {
+  if (obj == null || typeof obj !== "object") return obj;
+  const cleaned = { ...obj };
+  delete (cleaned as Record<string, unknown>)["__proto__"];
+  delete (cleaned as Record<string, unknown>)["constructor"];
+  delete (cleaned as Record<string, unknown>)["prototype"];
+  return cleaned;
+}
+
+/** Validate and sanitize a UserProgress object from untrusted storage. */
+function validateProgress(raw: unknown): UserProgress {
+  if (raw == null || typeof raw !== "object" || Array.isArray(raw)) {
+    return defaultProgress;
+  }
+  const obj = stripDangerousKeys(raw as Record<string, unknown>);
+  // Validate itemScores — each value must have numeric correct/incorrect/lastSeen
+  const rawScores = (typeof obj.itemScores === "object" && obj.itemScores !== null && !Array.isArray(obj.itemScores))
+    ? obj.itemScores as Record<string, unknown>
+    : {};
+  const sanitizedScores: UserProgress["itemScores"] = {};
+  for (const [key, val] of Object.entries(stripDangerousKeys(rawScores as Record<string, unknown>))) {
+    if (typeof key !== "string" || key.length > 128) continue;
+    if (val == null || typeof val !== "object") continue;
+    const score = val as Record<string, unknown>;
+    sanitizedScores[key] = {
+      correct: safeNumber(score.correct, 0, 0),
+      incorrect: safeNumber(score.incorrect, 0, 0),
+      lastSeen: safeNumber(score.lastSeen, 0, 0),
+    };
+  }
+  return {
+    xp: safeNumber(obj.xp, 0, 0),
+    level: safeNumber(obj.level, 1, 1),
+    currentCategory: typeof obj.currentCategory === "string" ? obj.currentCategory.slice(0, 128) : "",
+    completedLevels: Array.isArray(obj.completedLevels)
+      ? (obj.completedLevels as unknown[]).filter((v): v is string => typeof v === "string" && v.length <= 128)
+      : [],
+    streak: safeNumber(obj.streak, 0, 0),
+    streakFreezes: safeNumber(obj.streakFreezes, 0, 0),
+    itemScores: sanitizedScores,
+  };
+}
+
 let gameId = "passionate_learning";
 
 export function configureStorage(id: string): void {
-  gameId = id;
+  gameId = sanitizeGameId(id);
 }
 
 export function getGameId(): string {
@@ -33,7 +98,7 @@ export function getProgress(): UserProgress {
   try {
     const stored = localStorage.getItem(storageKey("progress"));
     if (!stored) return defaultProgress;
-    return { ...defaultProgress, ...JSON.parse(stored) };
+    return validateProgress(JSON.parse(stored));
   } catch {
     return defaultProgress;
   }
@@ -55,8 +120,10 @@ export function updateProgress(updates: Partial<UserProgress>): UserProgress {
 // 1x on first correct, 2x on 7-day recall, 3x on 30-day recall
 
 export function addXP(amount: number, multiplier = 1): UserProgress {
+  const safeAmount = safeNumber(amount, 0, 0, 100_000);
+  const safeMult = safeNumber(multiplier, 1, 0, 10);
   const current = getProgress();
-  const newXP = current.xp + Math.round(amount * multiplier);
+  const newXP = current.xp + Math.round(safeAmount * safeMult);
   const newLevel = Math.floor(newXP / 100) + 1;
   return updateProgress({ xp: newXP, level: newLevel });
 }
@@ -126,7 +193,18 @@ export function getFSRSCards(): FSRSCard[] {
   if (typeof window === "undefined") return [];
   try {
     const stored = localStorage.getItem(storageKey("fsrs_cards"));
-    return stored ? JSON.parse(stored) : [];
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    // Validate each card has required shape — reject malformed entries
+    return parsed.filter(
+      (c: unknown): c is FSRSCard =>
+        c != null &&
+        typeof c === "object" &&
+        typeof (c as FSRSCard).itemId === "string" &&
+        Number.isFinite((c as FSRSCard).due) &&
+        Number.isFinite((c as FSRSCard).stability)
+    );
   } catch {
     return [];
   }
@@ -222,11 +300,16 @@ interface MasteryAttempt {
 
 export function recordMasteryAttempt(levelKey: string, accuracy: number): void {
   if (typeof window === "undefined") return;
+  const safeAccuracy = safeNumber(accuracy, 0, 0, 100);
   try {
     const stored = localStorage.getItem(storageKey("mastery"));
-    const data: Record<string, MasteryAttempt[]> = stored ? JSON.parse(stored) : {};
-    const attempts = data[levelKey] || [];
-    attempts.push({ accuracy, timestamp: Date.now() });
+    const parsed = stored ? JSON.parse(stored) : {};
+    const data: Record<string, MasteryAttempt[]> =
+      (parsed != null && typeof parsed === "object" && !Array.isArray(parsed))
+        ? stripDangerousKeys(parsed)
+        : {};
+    const attempts = Array.isArray(data[levelKey]) ? data[levelKey] : [];
+    attempts.push({ accuracy: safeAccuracy, timestamp: Date.now() });
     data[levelKey] = attempts.slice(-5);
     localStorage.setItem(storageKey("mastery"), JSON.stringify(data));
   } catch {
@@ -260,11 +343,18 @@ export interface LearningEvent {
   accuracy?: number;
 }
 
+const VALID_EVENT_TYPES: ReadonlySet<LearningEvent["type"]> = new Set([
+  "first_correct", "review_correct", "review_incorrect", "concept_mastered", "drop_off",
+]);
+
 export function recordLearningEvent(event: LearningEvent): void {
   if (typeof window === "undefined") return;
+  // Validate event type against whitelist — reject unknown types
+  if (!VALID_EVENT_TYPES.has(event.type)) return;
   try {
     const stored = localStorage.getItem(storageKey("analytics"));
-    const events: LearningEvent[] = stored ? JSON.parse(stored) : [];
+    const parsed = stored ? JSON.parse(stored) : [];
+    const events: LearningEvent[] = Array.isArray(parsed) ? parsed : [];
     events.push(event);
     // Keep last 1000 events
     const trimmed = events.slice(-1000);

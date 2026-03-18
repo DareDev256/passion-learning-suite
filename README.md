@@ -33,8 +33,8 @@
 - **Animation**: Framer Motion
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
-- **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`)
-- **Testing**: Vitest (65 tests — storage layer, curriculum helpers, edge cases, all passing)
+- **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
+- **Testing**: Vitest (65+ tests — storage layer, security hardening, curriculum helpers, edge cases, all passing)
 - **Deployment**: Vercel (all 10 games live)
 
 ## Shared Game Systems
@@ -49,6 +49,16 @@ Every game inherits from the `template/` directory:
 - **CRT Overlay** — retro scanlines + neon glow UI theme
 - **Accessibility** — WCAG 2.2 AA compliant
 - **Analytics** — retention tracking, mastery metrics, per-question stats
+
+## Security
+
+The storage layer includes runtime hardening against client-side attacks:
+
+- **Prototype pollution defense** — `__proto__`, `constructor`, and `prototype` keys are stripped from all parsed localStorage data
+- **Input validation** — Numeric fields (XP, accuracy, multiplier) are clamped to safe bounds; NaN/Infinity/negative values are rejected
+- **Game ID sanitization** — `configureStorage()` only accepts alphanumeric/hyphen/underscore IDs (1-64 chars), preventing localStorage key injection
+- **Schema validation** — FSRS cards, mastery data, and analytics events are validated against expected shapes before use
+- **Event type whitelist** — Only the 5 defined learning event types are accepted
 
 ## Repo Structure
 

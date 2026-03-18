@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.4] - 2026-03-18
+
+### Security
+- **Storage layer: input validation and data integrity hardening** — All `JSON.parse()` calls from localStorage now pass through runtime validators that strip `__proto__`/`constructor`/`prototype` keys (prevents prototype pollution, CWE-502), clamp numeric fields to safe bounds (prevents NaN/Infinity propagation, CWE-20), and reject non-conforming shapes.
+- **`configureStorage()`: game ID sanitization** — Rejects IDs with special characters, path traversal sequences, or excessive length (1-64 alphanumeric/hyphen/underscore only). Prevents localStorage key injection (OWASP A03).
+- **`addXP()`: numeric bounds enforcement** — Amount clamped to 0–100,000 and multiplier to 0–10. Negative, NaN, and Infinity values safely rejected.
+- **`recordMasteryAttempt()`: accuracy clamping** — Bounded to 0–100 with type validation on parsed mastery data.
+- **`getFSRSCards()`: array element validation** — Parsed entries must have `itemId` (string), `due` (finite number), and `stability` (finite number). Malformed entries silently filtered.
+- **`recordLearningEvent()`: event type whitelist** — Only the 5 defined event types are accepted; unknown types are silently dropped.
+
+### Added
+- 8 security-focused tests: prototype pollution defense, negative value clamping, corrupted localStorage recovery, malformed FSRS card rejection, game ID injection prevention (41 total, up from 33)
+
 ## [0.2.2] - 2026-03-15
 
 ### Fixed

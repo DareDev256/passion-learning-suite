@@ -295,6 +295,90 @@ describe("analytics computed metrics", () => {
   });
 });
 
+// ─── Security: Input Validation ───
+describe("security hardening", () => {
+  it("configureStorage rejects IDs with special characters", () => {
+    expect(() => configureStorage("../../etc")).toThrow("Invalid game ID");
+    expect(() => configureStorage("<script>alert(1)</script>")).toThrow("Invalid game ID");
+    expect(() => configureStorage("a".repeat(65))).toThrow("Invalid game ID");
+    expect(() => configureStorage("")).toThrow("Invalid game ID");
+  });
+
+  it("configureStorage accepts valid IDs", () => {
+    configureStorage("my-game_v2");
+    expect(getGameId()).toBe("my-game_v2");
+    configureStorage("passionate_learning"); // restore
+  });
+
+  it("getProgress strips prototype pollution keys from localStorage", () => {
+    const poisoned = JSON.stringify({
+      xp: 50,
+      level: 1,
+      __proto__: { isAdmin: true },
+      constructor: { prototype: { polluted: true } },
+      currentCategory: "",
+      completedLevels: [],
+      streak: 0,
+      streakFreezes: 0,
+      itemScores: {},
+    });
+    localStorageMock.setItem("passionate_learning_progress", poisoned);
+    const p = getProgress();
+    expect(p.xp).toBe(50);
+    expect((p as Record<string, unknown>)["isAdmin"]).toBeUndefined();
+    expect(({} as Record<string, unknown>)["polluted"]).toBeUndefined();
+  });
+
+  it("getProgress clamps negative XP and level to safe minimums", () => {
+    const malicious = JSON.stringify({ xp: -999, level: -5, currentCategory: "", completedLevels: [], streak: -1, streakFreezes: -2, itemScores: {} });
+    localStorageMock.setItem("passionate_learning_progress", malicious);
+    const p = getProgress();
+    expect(p.xp).toBe(0);
+    expect(p.level).toBe(1);
+    expect(p.streak).toBe(0);
+    expect(p.streakFreezes).toBe(0);
+  });
+
+  it("getProgress handles corrupted non-object localStorage gracefully", () => {
+    localStorageMock.setItem("passionate_learning_progress", '"just a string"');
+    expect(getProgress().xp).toBe(0);
+    localStorageMock.setItem("passionate_learning_progress", "[1,2,3]");
+    expect(getProgress().xp).toBe(0);
+  });
+
+  it("addXP clamps negative and extreme values", () => {
+    addXP(-100); // negative amount → clamped to 0
+    expect(getProgress().xp).toBe(0);
+    addXP(NaN);
+    expect(getProgress().xp).toBe(0);
+    addXP(50, -2); // negative multiplier → clamped to 0
+    expect(getProgress().xp).toBe(0);
+  });
+
+  it("recordMasteryAttempt clamps accuracy to 0-100", () => {
+    recordMasteryAttempt("sec-1", 150); // over 100 → clamped to 100
+    recordMasteryAttempt("sec-1", -10); // under 0 → clamped to 0
+    recordMasteryAttempt("sec-1", 95);
+    const stored = JSON.parse(localStorageMock.getItem("passionate_learning_mastery")!);
+    expect(stored["sec-1"][0].accuracy).toBe(100);
+    expect(stored["sec-1"][1].accuracy).toBe(0);
+    expect(stored["sec-1"][2].accuracy).toBe(95);
+  });
+
+  it("getFSRSCards rejects malformed entries", () => {
+    localStorageMock.setItem("passionate_learning_fsrs_cards", JSON.stringify([
+      { itemId: "valid", due: 1000, stability: 0.5, difficulty: 0.3, reps: 1, lapses: 0, lastReview: 0 },
+      { noItemId: true },           // missing itemId
+      "not an object",              // wrong type
+      null,                         // null
+      { itemId: "bad-due", due: "tomorrow", stability: 0.5 }, // non-numeric due
+    ]));
+    const cards = getFSRSCards();
+    expect(cards).toHaveLength(1);
+    expect(cards[0].itemId).toBe("valid");
+  });
+});
+
 // ─── Reset ───
 describe("resetProgress", () => {
   it("clears all storage keys", () => {
