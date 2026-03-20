@@ -20,6 +20,11 @@ const initialStats: GameStats = {
   startTime: null,
 };
 
+/**
+ * React hook for real-time game session statistics.
+ * Tracks correct/incorrect counts, accuracy percentage, and elapsed time.
+ * Call `startTracking()` when gameplay begins and `stopTracking()` on completion.
+ */
 export function useGameStats() {
   const [stats, setStats] = useState<GameStats>(initialStats);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);

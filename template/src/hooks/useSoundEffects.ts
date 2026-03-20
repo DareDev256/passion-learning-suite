@@ -18,6 +18,11 @@ const DEFAULT_SETTINGS: SoundSettings = {
   musicVolume: 0.3,
 };
 
+/**
+ * React hook for 8-bit sound effects via Web Audio API. No external audio files needed.
+ * Provides named sound functions (`playCorrect`, `playIncorrect`, `playCelebration`, etc.)
+ * with per-category volume controls and mute toggle. Settings persist to localStorage.
+ */
 export function useSoundEffects() {
   const ctxRef = useRef<AudioContext | null>(null);
   const [settings, setSettings] = useState<SoundSettings>(() => {

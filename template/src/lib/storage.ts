@@ -71,10 +71,25 @@ function validateProgress(raw: unknown): UserProgress {
 
 let gameId = "passionate_learning";
 
+/**
+ * Set the game namespace for all localStorage keys. Call once at app init.
+ * Only accepts alphanumeric, hyphen, and underscore characters (1–64 chars).
+ * @param id - Unique game identifier (e.g. `"prompt_craft"`)
+ * @throws {Error} If `id` contains invalid characters or exceeds 64 chars
+ * @example
+ * ```ts
+ * // src/app/layout.tsx — call before any storage reads
+ * configureStorage("prompt_craft");
+ * ```
+ */
 export function configureStorage(id: string): void {
   gameId = sanitizeGameId(id);
 }
 
+/**
+ * Returns the currently configured game ID namespace.
+ * Defaults to `"passionate_learning"` if {@link configureStorage} was never called.
+ */
 export function getGameId(): string {
   return gameId;
 }
@@ -93,6 +108,11 @@ const defaultProgress: UserProgress = {
   itemScores: {},
 };
 
+/**
+ * Load the player's progress from localStorage.
+ * Returns safe defaults on SSR, missing data, or corrupted storage.
+ * All parsed values are validated against prototype pollution and numeric overflow.
+ */
 export function getProgress(): UserProgress {
   if (typeof window === "undefined") return defaultProgress;
   try {
@@ -104,11 +124,16 @@ export function getProgress(): UserProgress {
   }
 }
 
+/** Persist a full {@link UserProgress} object to localStorage. No-op during SSR. */
 export function saveProgress(progress: UserProgress): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(storageKey("progress"), JSON.stringify(progress));
 }
 
+/**
+ * Merge partial updates into the current progress and persist.
+ * @returns The merged {@link UserProgress} after saving.
+ */
 export function updateProgress(updates: Partial<UserProgress>): UserProgress {
   const current = getProgress();
   const updated = { ...current, ...updates };
@@ -119,6 +144,13 @@ export function updateProgress(updates: Partial<UserProgress>): UserProgress {
 // ─── XP System with Delayed Rewards ───
 // 1x on first correct, 2x on 7-day recall, 3x on 30-day recall
 
+/**
+ * Award XP with an optional recall multiplier. Automatically levels up (100 XP/level).
+ * Amount is clamped to 0–100,000 and multiplier to 0–10 for safety.
+ * @param amount - Base XP to award (clamped to 0–100k)
+ * @param multiplier - Recall bonus: 1× first see, 2× 7-day, 3× 30-day (default `1`)
+ * @returns Updated {@link UserProgress} with new XP and level.
+ */
 export function addXP(amount: number, multiplier = 1): UserProgress {
   const safeAmount = safeNumber(amount, 0, 0, 100_000);
   const safeMult = safeNumber(multiplier, 1, 0, 10);
@@ -128,6 +160,13 @@ export function addXP(amount: number, multiplier = 1): UserProgress {
   return updateProgress({ xp: newXP, level: newLevel });
 }
 
+/**
+ * Calculate the delayed-reward XP multiplier for an item based on time since last seen.
+ * - **1×** — first exposure or seen within 7 days
+ * - **2×** — 7+ days since last seen (spaced recall bonus)
+ * - **3×** — 30+ days since last seen (long-term retention bonus)
+ * @param itemId - The content item ID to check
+ */
 export function getRecallMultiplier(itemId: string): number {
   const current = getProgress();
   const score = current.itemScores[itemId];
@@ -138,6 +177,12 @@ export function getRecallMultiplier(itemId: string): number {
   return 1;
 }
 
+/**
+ * Mark a level as completed. Awards a streak freeze every 10 levels.
+ * Idempotent — completing an already-completed level is a no-op.
+ * @param categoryId - Category containing the level
+ * @param levelId - Numeric level ID within the category
+ */
 export function completeLevel(categoryId: string, levelId: number): UserProgress {
   const current = getProgress();
   const levelKey = `${categoryId}-${levelId}`;
@@ -153,6 +198,12 @@ export function completeLevel(categoryId: string, levelId: number): UserProgress
   return current;
 }
 
+/**
+ * Record a correct or incorrect answer for a content item.
+ * Updates the item's score counters and `lastSeen` timestamp.
+ * @param itemId - The content item ID
+ * @param isCorrect - Whether the player answered correctly
+ */
 export function updateItemScore(itemId: string, isCorrect: boolean): UserProgress {
   const current = getProgress();
   const existing = current.itemScores[itemId] || {
@@ -179,6 +230,7 @@ export function updateItemScore(itemId: string, isCorrect: boolean): UserProgres
 // Passion Agent will integrate ts-fsrs during build.
 // This is the localStorage bridge for FSRS card state.
 
+/** FSRS-4.5 spaced repetition card stored in localStorage. One card per content item. */
 export interface FSRSCard {
   itemId: string;
   due: number;         // timestamp when review is due
@@ -189,6 +241,10 @@ export interface FSRSCard {
   lastReview: number;  // timestamp of last review
 }
 
+/**
+ * Load all FSRS cards from localStorage. Malformed entries are silently filtered.
+ * Each card must have a string `itemId`, finite `due`, and finite `stability`.
+ */
 export function getFSRSCards(): FSRSCard[] {
   if (typeof window === "undefined") return [];
   try {
@@ -210,6 +266,7 @@ export function getFSRSCards(): FSRSCard[] {
   }
 }
 
+/** Upsert an FSRS card — updates existing card by `itemId` or appends a new one. */
 export function saveFSRSCard(card: FSRSCard): void {
   if (typeof window === "undefined") return;
   const cards = getFSRSCards();
@@ -222,6 +279,10 @@ export function saveFSRSCard(card: FSRSCard): void {
   localStorage.setItem(storageKey("fsrs_cards"), JSON.stringify(cards));
 }
 
+/**
+ * Get item IDs with overdue FSRS reviews, sorted by most overdue first.
+ * @param limit - Maximum items to return (default `5`)
+ */
 export function getDueItems(limit = 5): string[] {
   const now = Date.now();
   return getFSRSCards()
@@ -231,7 +292,11 @@ export function getDueItems(limit = 5): string[] {
     .map((card) => card.itemId);
 }
 
-// Fallback review queue (for before FSRS is fully integrated)
+/**
+ * Get items needing review. Prefers FSRS-scheduled items; falls back to
+ * a naive sort (most incorrect, least recently seen) when no FSRS cards exist.
+ * @param limit - Maximum items to return (default `5`)
+ */
 export function getItemsForReview(limit = 5): string[] {
   // Prefer FSRS-scheduled items
   const fsrsDue = getDueItems(limit);
@@ -248,6 +313,11 @@ export function getItemsForReview(limit = 5): string[] {
 
 // ─── Streak System with Freeze ───
 
+/**
+ * Update the daily streak. Extends on consecutive days, consumes streak freezes
+ * to cover gaps, or resets if not enough freezes. Idempotent within a single day.
+ * @returns Updated {@link UserProgress} with new streak and freeze counts.
+ */
 export function updateStreak(): UserProgress {
   if (typeof window === "undefined") return getProgress();
   const current = getProgress();
@@ -298,6 +368,12 @@ interface MasteryAttempt {
   timestamp: number;
 }
 
+/**
+ * Record a mastery gate attempt. Keeps the last 5 attempts per level.
+ * Accuracy is clamped to 0–100. See {@link checkMastery} for the unlock check.
+ * @param levelKey - Level identifier in `"categoryId-levelId"` format
+ * @param accuracy - Percentage score for this attempt (0–100)
+ */
 export function recordMasteryAttempt(levelKey: string, accuracy: number): void {
   if (typeof window === "undefined") return;
   const safeAccuracy = safeNumber(accuracy, 0, 0, 100);
@@ -317,6 +393,11 @@ export function recordMasteryAttempt(levelKey: string, accuracy: number): void {
   }
 }
 
+/**
+ * Check if a level meets the Kumon-style mastery gate: ≥90% accuracy on the last 3 attempts.
+ * @param levelKey - Level identifier in `"categoryId-levelId"` format
+ * @returns `true` if the player has mastered this level
+ */
 export function checkMastery(levelKey: string): boolean {
   if (typeof window === "undefined") return false;
   try {
@@ -335,6 +416,10 @@ export function checkMastery(levelKey: string): boolean {
 // ─── Learning Analytics ───
 // Track what matters: are people LEARNING, not just playing?
 
+/**
+ * A tracked learning analytics event. Only the 5 whitelisted types are accepted.
+ * Events are stored in localStorage (max 1,000 per game namespace).
+ */
 export interface LearningEvent {
   type: "first_correct" | "review_correct" | "review_incorrect" | "concept_mastered" | "drop_off";
   itemId: string;
@@ -347,6 +432,10 @@ const VALID_EVENT_TYPES: ReadonlySet<LearningEvent["type"]> = new Set([
   "first_correct", "review_correct", "review_incorrect", "concept_mastered", "drop_off",
 ]);
 
+/**
+ * Record a learning analytics event. Unknown event types are silently dropped.
+ * Storage is capped at 1,000 events (oldest trimmed on overflow).
+ */
 export function recordLearningEvent(event: LearningEvent): void {
   if (typeof window === "undefined") return;
   // Validate event type against whitelist — reject unknown types
@@ -364,6 +453,11 @@ export function recordLearningEvent(event: LearningEvent): void {
   }
 }
 
+/**
+ * Compute aggregate learning analytics from stored events.
+ * @returns Object with `totalItemsSeen`, `itemsMastered`, `averageTimeToMastery` (ms),
+ * `retentionRate7Day` (%), and `retentionRate30Day` (%). All zero on SSR or empty data.
+ */
 export function getLearningAnalytics(): {
   totalItemsSeen: number;
   itemsMastered: number;
@@ -427,6 +521,10 @@ export function getLearningAnalytics(): {
   }
 }
 
+/**
+ * Wipe all game data for the current namespace: progress, streaks, mastery,
+ * FSRS cards, and analytics. Irreversible. No-op during SSR.
+ */
 export function resetProgress(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(storageKey("progress"));

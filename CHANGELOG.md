@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5] - 2026-03-20
+
+### Added
+- **JSDoc for all 21 exported functions/interfaces in `storage.ts`** — Every public API now has parameter docs, return types, usage examples, and cross-references. Enables IDE tooltips and autocomplete for game developers.
+- **JSDoc for all 3 React hooks** — `useProgress`, `useGameStats`, and `useSoundEffects` now document their purpose, parameters, and usage patterns.
+- **API Reference section in README** — Complete table-format reference for the storage layer (setup, XP, FSRS, streaks, mastery, analytics) and React hooks. Developers can now onboard without reading implementation code.
+
 ## [0.2.4] - 2026-03-18
 
 ### Security

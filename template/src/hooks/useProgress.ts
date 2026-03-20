@@ -10,6 +10,11 @@ import {
   checkMastery,
 } from "@/lib/storage";
 
+/**
+ * React hook for player progression state. Wraps the storage layer with
+ * reactive state and memoized actions (XP, levels, streaks, mastery gates).
+ * @param categories - Optional category list for unlock gating logic
+ */
 export function useProgress(categories?: Category[]) {
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);

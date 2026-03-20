@@ -83,6 +83,60 @@ passion-learning-suite/
 
 Each game lives in its own repo and is deployed independently. This repo holds the master specification, per-game specs, and the shared template that all games were scaffolded from.
 
+## Storage API Reference
+
+The persistence layer (`template/src/lib/storage.ts`) is the shared brain of every game. All functions are SSR-safe, validated against prototype pollution, and namespaced by game ID.
+
+### Setup
+
+| Function | Description |
+|----------|-------------|
+| `configureStorage(id)` | Set the game namespace for all localStorage keys. Call once at init. |
+| `getGameId()` | Returns the current game ID namespace. |
+| `resetProgress()` | Wipe all data for the current namespace. Irreversible. |
+
+### XP & Progression
+
+| Function | Description |
+|----------|-------------|
+| `getProgress()` | Load player progress (XP, level, streak, scores). Safe defaults on missing/corrupt data. |
+| `addXP(amount, multiplier?)` | Award XP with optional recall multiplier (1×/2×/3×). Auto-levels at 100 XP. |
+| `getRecallMultiplier(itemId)` | Get delayed-reward multiplier: 1× (recent), 2× (7+ days), 3× (30+ days). |
+| `completeLevel(categoryId, levelId)` | Mark level complete. Awards streak freeze every 10 levels. |
+| `updateItemScore(itemId, isCorrect)` | Record an answer and update the item's score counters. |
+
+### Spaced Repetition (FSRS-4.5)
+
+| Function | Description |
+|----------|-------------|
+| `getFSRSCards()` | Load all FSRS review cards. Malformed entries silently filtered. |
+| `saveFSRSCard(card)` | Upsert an FSRS card by `itemId`. |
+| `getDueItems(limit?)` | Get overdue item IDs sorted by most overdue. Default limit: 5. |
+| `getItemsForReview(limit?)` | Smart review queue: FSRS-first, naive fallback for pre-FSRS games. |
+
+### Streaks & Mastery
+
+| Function | Description |
+|----------|-------------|
+| `updateStreak()` | Update daily streak. Consumes freezes to cover gaps. Idempotent per day. |
+| `recordMasteryAttempt(levelKey, accuracy)` | Record a mastery gate attempt (keeps last 5). |
+| `checkMastery(levelKey)` | Check Kumon-style gate: ≥90% on last 3 attempts to unlock. |
+
+### Analytics
+
+| Function | Description |
+|----------|-------------|
+| `recordLearningEvent(event)` | Track a learning event (5 valid types, max 1,000 stored). |
+| `getLearningAnalytics()` | Aggregate stats: items seen/mastered, retention rates, time-to-mastery. |
+
+### React Hooks
+
+| Hook | Description |
+|------|-------------|
+| `useProgress(categories?)` | Reactive player state with memoized XP, level, streak, and unlock actions. |
+| `useGameStats()` | Real-time session tracker: accuracy, correct/incorrect counts, elapsed time. |
+| `useSoundEffects()` | 8-bit Web Audio API sounds with volume controls and localStorage persistence. |
+
 ## Getting Started
 
 To scaffold a new game from the template:
