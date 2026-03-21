@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.1] - 2026-03-21
+
+### Added
+- **21 new tests** (80→101 total) targeting untested critical paths in the adaptive difficulty engine and curriculum helpers
+- **`difficulty-edge-cases.test.ts`** — 16 tests covering: rolling window cap (only 5 most recent scores per tier), per-tier streak computation, `computeRecommendation` boundary conditions (exact 50%/85% thresholds, hard-only data with poor performance, missing tier data fallthrough), tier fallback ordering (medium→hard→easy reaches all tiers, easy/hard only reach adjacent), item exhaustion, deduplication, explicit profile bypass, orphaned score handling
+- **`curriculum.test.ts`** — 5 tests covering: `getItemsByCategory` (valid/invalid), `getItemsByLevel` (valid/invalid), and curriculum data integrity (unique IDs, required fields, non-empty levels)
+
+### Fixed
+- Discovered and documented `buildTierOrder` behavior: easy-recommended players never see hard content (only adjacent tiers are searched), while medium-recommended players can access all three tiers. This is correct for a Kumon-style system but was previously undocumented.
+
 ## [0.3.0] - 2026-03-21
 
 ### Added
