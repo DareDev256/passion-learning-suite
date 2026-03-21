@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.6] - 2026-03-21
+
+### Added
+- **25 new tests** (41→66 total) covering previously untested critical paths
+- **`formatters.test.ts`** — 19 tests for extracted display helpers: `formatTime` edge cases (NaN, negative, Infinity, fractional seconds, multi-hour), `renderSpeed` time-vs-rate detection (case-insensitive regex, boundary values), `computeGrade` threshold boundaries (exact grade cutoffs and sub-threshold transitions)
+- **6 new storage edge-case tests** — JSON syntax error recovery, null progress recovery, Infinity multiplier fallback, zero-amount XP, invalid event type rejection, level+XP integration flow
+
+### Changed
+- **Extracted `formatTime`, `renderSpeed`, `computeGrade`** from `VictoryScreen.tsx` into `lib/formatters.ts` — pure functions are now independently testable without jsdom. VictoryScreen imports from the new module with zero behavior change.
+
 ## [0.2.5] - 2026-03-20
 
 ### Added

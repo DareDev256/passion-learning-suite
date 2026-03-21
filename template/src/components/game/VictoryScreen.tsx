@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { GameResults } from "@/types/game";
 import { Button } from "@/components/ui/Button";
+import { renderSpeed, computeGrade } from "@/lib/formatters";
 
 interface VictoryScreenProps {
   results: GameResults;
@@ -11,33 +12,13 @@ interface VictoryScreenProps {
   speedLabel?: string;   // "WPM", "Time", etc.
 }
 
-/** Format seconds as m:ss — guards against NaN, negative, and Infinity */
-function formatTime(seconds: number): string {
-  const safe = Number.isFinite(seconds) && seconds >= 0 ? Math.round(seconds) : 0;
-  const m = Math.floor(safe / 60);
-  const s = safe % 60;
-  return `${m}:${s.toString().padStart(2, "0")}`;
-}
-
-/** Render speed value: mm:ss for time-based metrics, raw number for rate-based (WPM) */
-function renderSpeed(value: number, label: string): string {
-  if (!Number.isFinite(value) || value < 0) return "—";
-  const isTimeBased = /time|duration|elapsed|seconds?/i.test(label);
-  return isTimeBased ? formatTime(value) : String(Math.round(value));
-}
-
 export function VictoryScreen({
   results,
   onPlayAgain,
   onBackToMenu,
   speedLabel = "Speed",
 }: VictoryScreenProps) {
-  const grade =
-    results.accuracy >= 95 ? "S" :
-    results.accuracy >= 90 ? "A" :
-    results.accuracy >= 80 ? "B" :
-    results.accuracy >= 70 ? "C" :
-    results.accuracy >= 60 ? "D" : "F";
+  const grade = computeGrade(results.accuracy);
 
   const gradeColor =
     grade === "S" ? "text-game-warning" :

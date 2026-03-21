@@ -379,6 +379,54 @@ describe("security hardening", () => {
   });
 });
 
+// ─── Edge Cases: Corruption + Integration ───
+describe("corruption recovery", () => {
+  it("recovers from syntactically invalid JSON in localStorage", () => {
+    localStorageMock.setItem("passionate_learning_progress", "{not json at all!!!");
+    const p = getProgress();
+    expect(p.xp).toBe(0);
+    expect(p.level).toBe(1);
+  });
+
+  it("recovers from null stored progress", () => {
+    localStorageMock.setItem("passionate_learning_progress", "null");
+    expect(getProgress().xp).toBe(0);
+  });
+});
+
+describe("addXP edge cases", () => {
+  it("clamps Infinity multiplier to fallback of 1", () => {
+    addXP(50, Infinity);
+    expect(getProgress().xp).toBe(50); // Infinity not finite → safeNumber fallback 1
+  });
+
+  it("handles zero amount gracefully", () => {
+    addXP(0);
+    expect(getProgress().xp).toBe(0);
+  });
+});
+
+describe("recordLearningEvent edge cases", () => {
+  it("silently drops events with invalid type", () => {
+    recordLearningEvent({ type: "hacked_event" as never, itemId: "x", timestamp: Date.now() });
+    const analytics = getLearningAnalytics();
+    expect(analytics.totalItemsSeen).toBe(0);
+  });
+});
+
+describe("level + XP integration", () => {
+  it("completing levels then adding XP preserves both independently", () => {
+    completeLevel("cat-a", 1);
+    addXP(250);
+    completeLevel("cat-a", 2);
+    const p = getProgress();
+    expect(p.completedLevels).toContain("cat-a-1");
+    expect(p.completedLevels).toContain("cat-a-2");
+    expect(p.xp).toBe(250);
+    expect(p.level).toBe(3);
+  });
+});
+
 // ─── Reset ───
 describe("resetProgress", () => {
   it("clears all storage keys", () => {
