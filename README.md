@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (66 tests — storage layer, display formatters, security hardening, edge cases, all passing)
+- **Testing**: Vitest (80 tests — storage, formatters, difficulty engine, security hardening, all passing)
 - **Deployment**: Vercel (all 10 games live)
 
 ## Shared Game Systems
@@ -48,6 +48,7 @@ Every game inherits from the `template/` directory:
 - **8-bit Sound Effects** — Web Audio API synthesis (no external files)
 - **CRT Overlay** — retro scanlines + neon glow UI theme
 - **Accessibility** — WCAG 2.2 AA compliant
+- **Adaptive Difficulty** — Kumon-style auto-select: promotes at 85% accuracy, demotes at 50%, per-tier rolling window
 - **Analytics** — retention tracking, mastery metrics, per-question stats
 
 ## Security
@@ -75,8 +76,8 @@ passion-learning-suite/
 └── template/                # Shared Next.js base template
     └── src/
         ├── components/      # Game UI (Timer, VictoryScreen, etc.)
-        ├── hooks/           # useProgress, useGameStats, useSoundEffects
-        ├── lib/             # Storage layer (localStorage)
+        ├── hooks/           # useProgress, useGameStats, useSoundEffects, useDifficulty
+        ├── lib/             # Storage, difficulty engine, formatters
         ├── data/            # Curriculum data template
         └── types/           # Shared TypeScript types
 ```
@@ -129,6 +130,13 @@ The persistence layer (`template/src/lib/storage.ts`) is the shared brain of eve
 | `recordLearningEvent(event)` | Track a learning event (5 valid types, max 1,000 stored). |
 | `getLearningAnalytics()` | Aggregate stats: items seen/mastered, retention rates, time-to-mastery. |
 
+### Adaptive Difficulty (`template/src/lib/difficulty.ts`)
+
+| Function | Description |
+|----------|-------------|
+| `analyzeDifficulty(items)` | Analyze player's per-tier performance, return recommended difficulty + confidence. |
+| `selectItems(items, count?, profile?)` | Pick items at recommended difficulty. Prefers unseen, falls back to adjacent tiers. |
+
 ### React Hooks
 
 | Hook | Description |
@@ -136,6 +144,7 @@ The persistence layer (`template/src/lib/storage.ts`) is the shared brain of eve
 | `useProgress(categories?)` | Reactive player state with memoized XP, level, streak, and unlock actions. |
 | `useGameStats()` | Real-time session tracker: accuracy, correct/incorrect counts, elapsed time. |
 | `useSoundEffects()` | 8-bit Web Audio API sounds with volume controls and localStorage persistence. |
+| `useDifficulty(items, batchSize?)` | Adaptive difficulty: auto-selects items, re-analyzes after rounds, manual override. |
 
 ## Getting Started
 

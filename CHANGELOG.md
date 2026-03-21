@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0] - 2026-03-21
+
+### Added
+- **Adaptive difficulty engine** (`lib/difficulty.ts`) — Kumon-style diagnostic placement that analyzes rolling accuracy per difficulty tier (easy/medium/hard). Promotes at 85% accuracy, demotes at 50%, with configurable window size. Outputs a `DifficultyProfile` with per-tier stats and confidence level (new/low/high).
+- **`selectItems()` smart picker** — selects content at the recommended difficulty, prioritizing unseen items, falling back to adjacent tiers when the target tier is exhausted.
+- **`useDifficulty` React hook** (`hooks/useDifficulty.ts`) — wraps the engine with reactive state. Auto-analyzes on mount, re-analyzes after each round via `refresh()`, supports manual override via `setDifficulty()`.
+- **14 new tests** (66→80 total) — full coverage of the difficulty engine: tier promotion/demotion thresholds, confidence levels, per-tier accuracy computation, item selection with fallback, unseen-item prioritization, empty catalog handling.
+
 ## [0.2.6] - 2026-03-21
 
 ### Added
