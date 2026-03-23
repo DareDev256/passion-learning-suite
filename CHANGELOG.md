@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2] - 2026-03-23
+
+### Added
+- **26 new tests** (101→127 total) covering previously untested critical paths across 2 new test suites
+- **`item-scoring.test.ts`** — 18 tests: `updateItemScore` isolation (new/existing items, accumulation, lastSeen updates, field preservation), `getItemsForReview` fallback sort order (oldest-seen first, excludes strong items, empty result when all mastered, FSRS priority over naive fallback), `getDueItems` edge cases (empty/future-due/limit), `getRecallMultiplier` exact boundary conditions (6.96d→1×, 7d→2×, 29d→2×, 30d→3×)
+- **`enrichment-integration.test.ts`** — 8 tests: enrichment field integrity validation (required fields present, proTip optional but non-empty), enrichment-less items in difficulty analysis, `selectItems` oldest-seen prioritization (timestamp ordering, unseen-always-first guarantee), cross-module integration (storage→difficulty→selection promotion flow, confidence with mixed tiers, curriculum→difficulty engine compatibility)
+
 ## [0.3.1] - 2026-03-21
 
 ### Added
