@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3] - 2026-03-23
+
+### Security
+- **Content ID validation for all public write functions** — `updateItemScore()`, `saveFSRSCard()`, `getRecallMultiplier()`, `completeLevel()`, `recordMasteryAttempt()`, and `checkMastery()` now validate their `itemId`/`levelKey`/`categoryId` parameters against a strict pattern (`/^[a-zA-Z0-9_.:/-]{1,128}$/`) and reject prototype pollution keys (`__proto__`, `constructor`, `prototype`). Previously, passing `"__proto__"` as an `itemId` to `updateItemScore()` could pollute `Object.prototype` via the scores object (CWE-1321, OWASP A03).
+- **`checkMastery()` deserialization hardening** — Now validates parsed mastery data with `stripDangerousKeys()`, confirms top-level object shape, and validates each attempt entry has finite `accuracy` and `timestamp` fields. Previously trusted raw `JSON.parse()` output without any validation (CWE-502), while its sibling `recordMasteryAttempt()` was already properly hardened.
+- **`completeLevel()` numeric clamping** — `levelId` parameter now clamped via `safeNumber()` to prevent NaN/Infinity propagation into the `completedLevels` array.
+
 ## [0.3.2] - 2026-03-23
 
 ### Added

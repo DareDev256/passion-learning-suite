@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (127 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, all passing)
+- **Testing**: Vitest (127 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening — all passing)
 - **Deployment**: Vercel (all 10 games live)
 
 ## Shared Game Systems
@@ -56,9 +56,10 @@ Every game inherits from the `template/` directory:
 The storage layer includes runtime hardening against client-side attacks:
 
 - **Prototype pollution defense** — `__proto__`, `constructor`, and `prototype` keys are stripped from all parsed localStorage data
-- **Input validation** — Numeric fields (XP, accuracy, multiplier) are clamped to safe bounds; NaN/Infinity/negative values are rejected
+- **Content ID validation** — All public functions that accept `itemId`, `levelKey`, or `categoryId` validate against a strict pattern (`a-z`, `0-9`, `_`, `.`, `:`, `/`, `-`, max 128 chars) and explicitly reject prototype pollution keys. Invalid IDs are silently dropped.
+- **Input validation** — Numeric fields (XP, accuracy, multiplier, levelId) are clamped to safe bounds; NaN/Infinity/negative values are rejected
 - **Game ID sanitization** — `configureStorage()` only accepts alphanumeric/hyphen/underscore IDs (1-64 chars), preventing localStorage key injection
-- **Schema validation** — FSRS cards, mastery data, and analytics events are validated against expected shapes before use
+- **Deserialization hardening** — All `JSON.parse()` paths (progress, mastery, FSRS, analytics) validate structure, strip dangerous keys, and type-check every field before use
 - **Event type whitelist** — Only the 5 defined learning event types are accepted
 
 ## Repo Structure

@@ -9,6 +9,8 @@ import { UserProgress } from "@/types/game";
 // See: OWASP A03 (Injection), A08 (Data Integrity), CWE-20, CWE-502.
 
 const GAME_ID_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
+const CONTENT_ID_PATTERN = /^[a-zA-Z0-9_.:/-]{1,128}$/;
+const DANGEROUS_KEYS: ReadonlySet<string> = new Set(["__proto__", "constructor", "prototype"]);
 
 function sanitizeGameId(id: string): string {
   if (!GAME_ID_PATTERN.test(id)) {
@@ -17,6 +19,17 @@ function sanitizeGameId(id: string): string {
     );
   }
   return id;
+}
+
+/**
+ * Validate a content/item/level ID used as an object key.
+ * Rejects prototype pollution keys and enforces length/character bounds.
+ * Returns the ID if valid, or undefined if invalid (silent rejection).
+ */
+function isValidContentId(id: string): boolean {
+  if (typeof id !== "string") return false;
+  if (DANGEROUS_KEYS.has(id)) return false;
+  return CONTENT_ID_PATTERN.test(id);
 }
 
 /** Clamp a number to safe bounds, returning fallback on NaN/Infinity. */
@@ -168,6 +181,7 @@ export function addXP(amount: number, multiplier = 1): UserProgress {
  * @param itemId - The content item ID to check
  */
 export function getRecallMultiplier(itemId: string): number {
+  if (!isValidContentId(itemId)) return 1; // invalid ID → treat as unseen
   const current = getProgress();
   const score = current.itemScores[itemId];
   if (!score) return 1; // Never seen — first exposure, base XP
@@ -184,8 +198,10 @@ export function getRecallMultiplier(itemId: string): number {
  * @param levelId - Numeric level ID within the category
  */
 export function completeLevel(categoryId: string, levelId: number): UserProgress {
+  if (!isValidContentId(categoryId)) return getProgress(); // reject dangerous category IDs
+  const safeLevelId = safeNumber(levelId, 0, 0, 10_000);
   const current = getProgress();
-  const levelKey = `${categoryId}-${levelId}`;
+  const levelKey = `${categoryId}-${safeLevelId}`;
   if (!current.completedLevels.includes(levelKey)) {
     // Award streak freeze every 10 levels
     const newCompleted = [...current.completedLevels, levelKey];
@@ -205,6 +221,7 @@ export function completeLevel(categoryId: string, levelId: number): UserProgress
  * @param isCorrect - Whether the player answered correctly
  */
 export function updateItemScore(itemId: string, isCorrect: boolean): UserProgress {
+  if (!isValidContentId(itemId)) return getProgress(); // reject dangerous/malformed IDs
   const current = getProgress();
   const existing = current.itemScores[itemId] || {
     correct: 0,
@@ -269,6 +286,7 @@ export function getFSRSCards(): FSRSCard[] {
 /** Upsert an FSRS card — updates existing card by `itemId` or appends a new one. */
 export function saveFSRSCard(card: FSRSCard): void {
   if (typeof window === "undefined") return;
+  if (!isValidContentId(card.itemId)) return; // reject dangerous/malformed IDs
   const cards = getFSRSCards();
   const idx = cards.findIndex((c) => c.itemId === card.itemId);
   if (idx >= 0) {
@@ -376,6 +394,7 @@ interface MasteryAttempt {
  */
 export function recordMasteryAttempt(levelKey: string, accuracy: number): void {
   if (typeof window === "undefined") return;
+  if (!isValidContentId(levelKey)) return; // reject dangerous/malformed level keys
   const safeAccuracy = safeNumber(accuracy, 0, 0, 100);
   try {
     const stored = localStorage.getItem(storageKey("mastery"));
@@ -400,11 +419,24 @@ export function recordMasteryAttempt(levelKey: string, accuracy: number): void {
  */
 export function checkMastery(levelKey: string): boolean {
   if (typeof window === "undefined") return false;
+  if (!isValidContentId(levelKey)) return false; // reject dangerous/malformed level keys
   try {
     const stored = localStorage.getItem(storageKey("mastery"));
     if (!stored) return false;
-    const data: Record<string, MasteryAttempt[]> = JSON.parse(stored);
-    const attempts = data[levelKey] || [];
+    const parsed = JSON.parse(stored);
+    // Validate top-level shape — must be a plain object, not array/null/primitive
+    if (parsed == null || typeof parsed !== "object" || Array.isArray(parsed)) return false;
+    const data = stripDangerousKeys(parsed as Record<string, unknown>);
+    const rawAttempts = data[levelKey];
+    if (!Array.isArray(rawAttempts)) return false;
+    // Validate each attempt has a finite numeric accuracy
+    const attempts: MasteryAttempt[] = rawAttempts.filter(
+      (a: unknown): a is MasteryAttempt =>
+        a != null &&
+        typeof a === "object" &&
+        Number.isFinite((a as MasteryAttempt).accuracy) &&
+        Number.isFinite((a as MasteryAttempt).timestamp)
+    );
     if (attempts.length < 3) return false;
     const last3 = attempts.slice(-3);
     return last3.every((a) => a.accuracy >= 90);
