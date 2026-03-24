@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { GameResults } from "@/types/game";
 import { Button } from "@/components/ui/Button";
+import { ShareCard } from "@/components/game/ShareCard";
 import { renderSpeed, computeGrade } from "@/lib/formatters";
 
 interface VictoryScreenProps {
@@ -10,6 +11,10 @@ interface VictoryScreenProps {
   onPlayAgain: () => void;
   onBackToMenu: () => void;
   speedLabel?: string;   // "WPM", "Time", etc.
+  gameName?: string;     // For share card (e.g. "Prompt Craft")
+  streak?: number;       // Current streak for share card
+  level?: number;        // Current level for share card
+  gameUrl?: string;      // Public URL for share card link
 }
 
 export function VictoryScreen({
@@ -17,6 +22,10 @@ export function VictoryScreen({
   onPlayAgain,
   onBackToMenu,
   speedLabel = "Speed",
+  gameName,
+  streak,
+  level,
+  gameUrl,
 }: VictoryScreenProps) {
   const grade = computeGrade(results.accuracy);
 
@@ -98,6 +107,16 @@ export function VictoryScreen({
           MENU
         </Button>
       </motion.div>
+
+      {gameName && (
+        <ShareCard
+          results={results}
+          gameName={gameName}
+          streak={streak}
+          level={level}
+          gameUrl={gameUrl}
+        />
+      )}
     </motion.div>
   );
 }

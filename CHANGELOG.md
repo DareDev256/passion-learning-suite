@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.0] - 2026-03-24
+
+### Added
+- **Social Share Cards** — retro-styled shareable score cards that appear on the VictoryScreen after level completion. Players can share their grade, accuracy, streak, and score to social media or clipboard.
+- **`lib/share.ts`** — Pure utility module with `generateShareText()`, `canNativeShare()`, and `shareResults()`. Generates formatted share text with grade-specific emoji (👑 S, ⚡ A, 🔥 B, ✨ C, 💪 D, 🎮 F), streak callouts, and optional game URL.
+- **`ShareCard` component** — Pixel-bordered score card with animated share button. Uses Web Share API on mobile (native share sheet) with clipboard fallback on desktop. Visual feedback for copy/share states via AnimatePresence transitions.
+- **VictoryScreen integration** — New optional props: `gameName`, `streak`, `level`, `gameUrl`. When `gameName` is provided, the ShareCard renders below the action buttons.
+- **8 new tests** (127→135 total) — `share.test.ts` covering: grade emoji mapping for all 6 ranks, streak inclusion/exclusion logic, URL appending, zero/100% accuracy edge cases, multi-line output structure.
+
 ## [0.3.4] - 2026-03-24
 
 ### Fixed

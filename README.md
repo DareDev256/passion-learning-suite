@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (127 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening — all passing)
+- **Testing**: Vitest (135 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share — all passing)
 - **Deployment**: Vercel (all 10 games live)
 
 ## Shared Game Systems
@@ -50,6 +50,7 @@ Every game inherits from the `template/` directory:
 - **Accessibility** — WCAG 2.2 AA compliant
 - **Adaptive Difficulty** — Kumon-style auto-select: promotes at 85% accuracy, demotes at 50%, per-tier rolling window
 - **Analytics** — retention tracking, mastery metrics, per-question stats
+- **Social Share Cards** — retro-styled score cards with Web Share API (mobile) + clipboard fallback (desktop)
 
 ## Security
 
@@ -156,6 +157,18 @@ Each game replaces the template curriculum data but keeps these helper functions
 |----------|-------------|
 | `getItemsByCategory(categoryId)` | Get all `ContentItem`s belonging to a category. Returns empty array if no items match. |
 | `getItemsByLevel(categoryId, levelId)` | Get items for a specific level within a category. Resolves the level's item ID list to full `ContentItem` objects, preserving level order. |
+
+### Social Share (`template/src/lib/share.ts`)
+
+Pure functions for generating shareable score cards. Integrated into VictoryScreen via the `ShareCard` component.
+
+| Function | Description |
+|----------|-------------|
+| `generateShareText(data)` | Generate multi-line share text from `GameResults` with grade emoji, accuracy, streak, and optional game URL. |
+| `canNativeShare()` | Check if Web Share API is available (mobile browsers, some desktop). |
+| `shareResults(data)` | Share via native share sheet (mobile) or clipboard fallback (desktop). Returns `"shared"`, `"copied"`, or `"failed"`. |
+
+The `ShareCard` component renders automatically in `VictoryScreen` when `gameName` is provided. Pass `streak`, `level`, and `gameUrl` for richer share cards.
 
 ### React Hooks
 
