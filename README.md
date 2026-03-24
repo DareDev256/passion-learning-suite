@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (127 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening — all passing)
+- **Testing**: Vitest (153 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, round insights — all passing)
 - **Deployment**: Vercel (all 10 games live)
 
 ## Shared Game Systems
@@ -49,6 +49,7 @@ Every game inherits from the `template/` directory:
 - **CRT Overlay** — retro scanlines + neon glow UI theme
 - **Accessibility** — WCAG 2.2 AA compliant
 - **Adaptive Difficulty** — Kumon-style auto-select: promotes at 85% accuracy, demotes at 50%, per-tier rolling window
+- **Round Insights** — post-round feedback explaining difficulty transitions, identifying weak items, and tracking learning momentum
 - **Analytics** — retention tracking, mastery metrics, per-question stats
 
 ## Security
@@ -137,6 +138,16 @@ The persistence layer (`template/src/lib/storage.ts`) is the shared brain of eve
 |----------|-------------|
 | `analyzeDifficulty(items)` | Analyze player's per-tier performance, return recommended difficulty + confidence. |
 | `selectItems(items, count?, profile?)` | Pick items at recommended difficulty. Prefers unseen, falls back to adjacent tiers. |
+
+### Round Insights (`template/src/lib/insights.ts`)
+
+| Function | Description |
+|----------|-------------|
+| `computeTransition(before, after)` | Compare before/after `DifficultyProfile`s — returns transition type (promoted/demoted/maintained) with human-readable reason. |
+| `computeRoundPerformance(correct, total, profile)` | Round accuracy vs historical average at the current tier. Returns delta (positive = above average). |
+| `identifyFocusItems(scores, limit?)` | Find the player's weakest items by error ratio. Default limit: 3. |
+| `computeMomentum(delta, streak)` | Classify learning trajectory as `"rising"`, `"steady"`, or `"falling"`. |
+| `computeRoundInsight(before, after, correct, total, scores)` | All-in-one: combines transition, performance, focus items, and momentum into a single `RoundInsight` object. |
 
 ### React Hooks
 
