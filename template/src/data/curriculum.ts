@@ -45,12 +45,36 @@ export const items: ContentItem[] = [
   // Add more items...
 ];
 
-// Helper: get items by category
+/**
+ * Get all content items belonging to a category.
+ *
+ * @param categoryId - Category identifier (e.g. `"getting-started"`)
+ * @returns Matching items, or empty array if category has no items
+ *
+ * @example
+ * ```ts
+ * const basics = getItemsByCategory("getting-started");
+ * // → [{ id: "gs-001", ... }, { id: "gs-002", ... }, ...]
+ * ```
+ */
 export function getItemsByCategory(categoryId: string): ContentItem[] {
   return items.filter((item) => item.category === categoryId);
 }
 
-// Helper: get items by level
+/**
+ * Get content items for a specific level within a category.
+ * Resolves item IDs defined in the level's `items` array to full `ContentItem` objects.
+ *
+ * @param categoryId - Category identifier (e.g. `"getting-started"`)
+ * @param levelId - Numeric level ID within the category
+ * @returns Matching items in level order, or empty array if category/level not found
+ *
+ * @example
+ * ```ts
+ * const level1 = getItemsByLevel("getting-started", 1);
+ * // → [{ id: "gs-001", ... }, ..., { id: "gs-005", ... }]
+ * ```
+ */
 export function getItemsByLevel(categoryId: string, levelId: number): ContentItem[] {
   const category = categories.find((c) => c.id === categoryId);
   if (!category) return [];

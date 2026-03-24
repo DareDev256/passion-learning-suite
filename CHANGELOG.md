@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.4] - 2026-03-24
+
+### Fixed
+- **Removed phantom Round Insights API reference** — README documented 5 functions from `lib/insights.ts` which does not exist. The entire Round Insights section was stale (likely planned but never implemented). Removed from both the API reference and Shared Game Systems list.
+- **Corrected test count** — README claimed 153 tests; actual count is 127. Updated to match `vitest run` output.
+
+### Added
+- **Display Formatters API reference** — `formatTime()`, `renderSpeed()`, and `computeGrade()` from `lib/formatters.ts` now documented in README. These were extracted in v0.2.6 but never added to the API reference.
+- **Curriculum Helpers API reference** — `getItemsByCategory()` and `getItemsByLevel()` from `data/curriculum.ts` now documented in README with usage context.
+- **JSDoc for curriculum helpers** — Both `getItemsByCategory()` and `getItemsByLevel()` now have full JSDoc with `@param`, `@returns`, and `@example` tags for IDE autocomplete.
+
 ## [0.3.3] - 2026-03-23
 
 ### Security
