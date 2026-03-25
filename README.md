@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (150 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share, player insights — all passing)
+- **Testing**: Vitest (169 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share, player insights, spaced repetition — all passing)
 - **Deployment**: Vercel (all 10 games live)
 
 ## Shared Game Systems
@@ -43,7 +43,7 @@ Every game inherits from the `template/` directory:
 
 - **XP + Leveling** — 100 XP/level with delayed recall rewards (1x/2x/3x multiplier)
 - **Daily Streak** — freeze system (earn 1 freeze per 10 levels, max 3)
-- **FSRS-4.5 Spaced Repetition** — scientifically-backed review scheduling
+- **FSRS-4.5 Spaced Repetition** — scientifically-backed review scheduling with live ts-fsrs integration
 - **Mastery Gates** — Kumon-style: 90% on last 3 attempts to advance
 - **8-bit Sound Effects** — Web Audio API synthesis (no external files)
 - **CRT Overlay** — retro scanlines + neon glow UI theme
@@ -80,7 +80,7 @@ passion-learning-suite/
     └── src/
         ├── components/      # Game UI (Timer, VictoryScreen, etc.)
         ├── hooks/           # useProgress, useGameStats, useSoundEffects, useDifficulty
-        ├── lib/             # Storage, difficulty engine, display formatters, player insights
+        ├── lib/             # Storage, difficulty engine, formatters, insights, spaced repetition
         ├── data/            # Curriculum data template
         └── types/           # Shared TypeScript types
 ```
@@ -117,6 +117,17 @@ The persistence layer (`template/src/lib/storage.ts`) is the shared brain of eve
 | `saveFSRSCard(card)` | Upsert an FSRS card by `itemId`. |
 | `getDueItems(limit?)` | Get overdue item IDs sorted by most overdue. Default limit: 5. |
 | `getItemsForReview(limit?)` | Smart review queue: FSRS-first, naive fallback for pre-FSRS games. |
+
+### Spaced Repetition Scheduler (`template/src/lib/spacedRepetition.ts`)
+
+Active scheduling engine that bridges ts-fsrs with the storage layer. The storage API persists FSRS cards; this module runs the algorithm to compute optimal review intervals.
+
+| Function | Description |
+|----------|-------------|
+| `gradeItem(itemId, quality)` | Grade an answer and schedule next review via FSRS. Creates new card on first review. Returns next due date, interval, stability, and difficulty. |
+| `inferGrade(isCorrect, confidence?)` | Map correct/incorrect + confidence (0-1) to FSRS quality: again/hard/good/easy. Default confidence 0.7 → "good". |
+| `getReviewQueue(limit?)` | Prioritized queue: `due` (overdue, most overdue first) + `upcoming` (within 24h). Default limit: 10. |
+| `computeMemoryStrength()` | Overall memory score (0-100) based on average FSRS stability across all tracked items. |
 
 ### Streaks & Mastery
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.0] - 2026-03-25
+
+### Added
+- **Spaced Repetition Scheduler** (`lib/spacedRepetition.ts`) — Active scheduling engine that bridges ts-fsrs with the storage layer. `gradeItem()` creates/updates FSRS cards and computes optimal review intervals. `inferGrade()` maps correct/incorrect + confidence to FSRS quality grades (again/hard/good/easy). `getReviewQueue()` builds prioritized due/upcoming queues. `computeMemoryStrength()` scores overall memory retention 0-100 from average card stability. Fuzz enabled to prevent predictable review patterns.
+- **19 new tests** (150→169 total) — `spacedRepetition.test.ts` covering: grade inference (5 cases), item grading with card creation/persistence/updates/interval ordering/difficulty bounds, review queue (empty/overdue/sort/upcoming/limit), memory strength (empty/full/capped/averaged).
+
 ## [0.5.0] - 2026-03-25
 
 ### Added
