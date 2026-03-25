@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0] - 2026-03-25
+
+### Added
+- **Player Insights Engine** (`lib/insights.ts`) — Pure computation layer with `computeCategoryStrengths()` (per-category accuracy from item scores), `findWeakestItems()` (items with worst correct-to-total ratio, tie-broken by staleness), and `computeMasteryRate()` (mastery conversion percentage). Zero side effects, fully testable.
+- **PlayerInsights Component** (`components/game/PlayerInsights.tsx`) — Retro-styled analytics dashboard showing: Learning Pulse overview (items seen, mastered, mastery rate, avg time-to-mastery), 7-day and 30-day retention recall bars with color-coded thresholds, per-category strength breakdown with animated Framer Motion progress bars, and a "Needs Work" section highlighting weakest items. Empty state handled gracefully. ARIA progressbar roles for accessibility.
+- **15 new tests** (135→150 total) — `insights.test.ts` covering: category strength computation (empty scores, multi-category accuracy, sort order, zero-attempt exclusion), weakest item ranking (ratio sort, limit, staleness tie-breaking, days-since-review accuracy, zero-attempt exclusion), mastery rate (zero/full/partial/rounded/negative edge cases).
+
 ## [0.4.0] - 2026-03-24
 
 ### Added

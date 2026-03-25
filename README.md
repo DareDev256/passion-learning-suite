@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (135 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share — all passing)
+- **Testing**: Vitest (150 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share, player insights — all passing)
 - **Deployment**: Vercel (all 10 games live)
 
 ## Shared Game Systems
@@ -50,6 +50,7 @@ Every game inherits from the `template/` directory:
 - **Accessibility** — WCAG 2.2 AA compliant
 - **Adaptive Difficulty** — Kumon-style auto-select: promotes at 85% accuracy, demotes at 50%, per-tier rolling window
 - **Analytics** — retention tracking, mastery metrics, per-question stats
+- **Player Insights** — visual analytics dashboard showing mastery rate, category strengths, retention recall bars, and weakest items needing review
 - **Social Share Cards** — retro-styled score cards with Web Share API (mobile) + clipboard fallback (desktop)
 
 ## Security
@@ -79,7 +80,7 @@ passion-learning-suite/
     └── src/
         ├── components/      # Game UI (Timer, VictoryScreen, etc.)
         ├── hooks/           # useProgress, useGameStats, useSoundEffects, useDifficulty
-        ├── lib/             # Storage, difficulty engine, display formatters
+        ├── lib/             # Storage, difficulty engine, display formatters, player insights
         ├── data/            # Curriculum data template
         └── types/           # Shared TypeScript types
 ```
@@ -169,6 +170,18 @@ Pure functions for generating shareable score cards. Integrated into VictoryScre
 | `shareResults(data)` | Share via native share sheet (mobile) or clipboard fallback (desktop). Returns `"shared"`, `"copied"`, or `"failed"`. |
 
 The `ShareCard` component renders automatically in `VictoryScreen` when `gameName` is provided. Pass `streak`, `level`, and `gameUrl` for richer share cards.
+
+### Player Insights (`template/src/lib/insights.ts`)
+
+Pure computation functions that transform raw progress data into displayable learning insights. No side effects.
+
+| Function | Description |
+|----------|-------------|
+| `computeCategoryStrengths(items, scores)` | Per-category accuracy, strong/weak item counts. Sorted by accuracy descending. |
+| `findWeakestItems(scores, limit?)` | Items with worst correct-to-total ratio, breaking ties by staleness. Default limit: 5. |
+| `computeMasteryRate(totalSeen, totalMastered)` | Mastery conversion rate as 0-100 percentage. |
+
+The `PlayerInsights` component (`components/game/PlayerInsights.tsx`) renders a retro-styled analytics panel with: Learning Pulse overview (items seen/mastered, mastery rate, time-to-mastery), 7-day and 30-day retention recall bars, per-category strength breakdown with animated progress bars, and a "Needs Work" section highlighting weakest items.
 
 ### React Hooks
 
