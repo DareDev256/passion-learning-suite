@@ -18,6 +18,38 @@ const DEFAULT_SETTINGS: SoundSettings = {
   musicVolume: 0.3,
 };
 
+// ─── Security: Deserialization Validation ───
+// Guards against prototype pollution (CWE-1321) and type confusion (CWE-502)
+// from crafted localStorage payloads. Mirrors hardening in storage.ts.
+const DANGEROUS_KEYS: ReadonlySet<string> = new Set(["__proto__", "constructor", "prototype"]);
+
+/** Clamp a number to [min, max], returning fallback on NaN/Infinity. */
+function safeVolume(value: unknown, fallback: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return fallback;
+  return Math.max(0, Math.min(1, value));
+}
+
+/**
+ * Validate and sanitize a SoundSettings object from untrusted localStorage.
+ * Rejects prototype pollution keys, enforces boolean/number types, clamps volumes.
+ * See: OWASP A08 (Data Integrity), CWE-502 (Deserialization of Untrusted Data).
+ */
+function validateSoundSettings(raw: unknown): SoundSettings {
+  if (raw == null || typeof raw !== "object" || Array.isArray(raw)) {
+    return DEFAULT_SETTINGS;
+  }
+  // Strip prototype pollution keys before accessing properties
+  const obj = raw as Record<string, unknown>;
+  for (const key of DANGEROUS_KEYS) {
+    delete obj[key];
+  }
+  return {
+    enabled: typeof obj.enabled === "boolean" ? obj.enabled : DEFAULT_SETTINGS.enabled,
+    sfxVolume: safeVolume(obj.sfxVolume, DEFAULT_SETTINGS.sfxVolume),
+    musicVolume: safeVolume(obj.musicVolume, DEFAULT_SETTINGS.musicVolume),
+  };
+}
+
 /**
  * React hook for 8-bit sound effects via Web Audio API. No external audio files needed.
  * Provides named sound functions (`playCorrect`, `playIncorrect`, `playCelebration`, etc.)
@@ -29,7 +61,7 @@ export function useSoundEffects() {
     if (typeof window === "undefined") return DEFAULT_SETTINGS;
     try {
       const stored = localStorage.getItem("pl_sound_settings");
-      return stored ? { ...DEFAULT_SETTINGS, ...JSON.parse(stored) } : DEFAULT_SETTINGS;
+      return stored ? validateSoundSettings(JSON.parse(stored)) : DEFAULT_SETTINGS;
     } catch {
       return DEFAULT_SETTINGS;
     }

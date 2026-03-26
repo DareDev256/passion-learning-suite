@@ -23,6 +23,27 @@ const GRADE_EMOJI: Record<string, string> = {
   F: "🎮",
 };
 
+// ─── Security: Share Text Input Sanitization ───
+// Guards against social engineering via crafted game names (CWE-20).
+// Strips newlines (prevents fake share content injection), control chars,
+// and enforces length bounds.
+const MAX_GAME_NAME_LENGTH = 100;
+
+/**
+ * Sanitize a game name for inclusion in share text.
+ * Strips control characters and newlines to prevent content injection,
+ * and truncates to a safe display length.
+ * See: CWE-20 (Improper Input Validation), OWASP A03 (Injection).
+ */
+function sanitizeShareString(input: string): string {
+  // Strip control characters (U+0000–U+001F, U+007F–U+009F) and newlines
+  const cleaned = input.replace(/[\x00-\x1f\x7f-\x9f]/g, "").trim();
+  if (cleaned.length > MAX_GAME_NAME_LENGTH) {
+    return cleaned.slice(0, MAX_GAME_NAME_LENGTH) + "…";
+  }
+  return cleaned || "Game";
+}
+
 /**
  * Generate shareable text from game results.
  * Designed for social media, clipboard, or native share sheets.
@@ -40,8 +61,9 @@ export function generateShareText(data: ShareData): string {
   const grade = computeGrade(data.results.accuracy);
   const emoji = GRADE_EMOJI[grade] ?? "🎮";
   const lines: string[] = [];
+  const safeName = sanitizeShareString(data.gameName);
 
-  lines.push(`${emoji} ${grade} Rank on ${data.gameName}!`);
+  lines.push(`${emoji} ${grade} Rank on ${safeName}!`);
 
   const stats: string[] = [
     `${data.results.accuracy}% accuracy`,
@@ -76,7 +98,7 @@ export async function shareResults(data: ShareData): Promise<"shared" | "copied"
 
   if (canNativeShare()) {
     try {
-      await navigator.share({ text, title: `${data.gameName} Score` });
+      await navigator.share({ text, title: `${sanitizeShareString(data.gameName)} Score` });
       return "shared";
     } catch (e) {
       // User cancelled or share failed — fall through to clipboard

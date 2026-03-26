@@ -72,7 +72,7 @@ function validateProgress(raw: unknown): UserProgress {
   return {
     xp: safeNumber(obj.xp, 0, 0),
     level: safeNumber(obj.level, 1, 1),
-    currentCategory: typeof obj.currentCategory === "string" ? obj.currentCategory.slice(0, 128) : "",
+    currentCategory: typeof obj.currentCategory === "string" && isValidContentId(obj.currentCategory) ? obj.currentCategory : "",
     completedLevels: Array.isArray(obj.completedLevels)
       ? (obj.completedLevels as unknown[]).filter((v): v is string => typeof v === "string" && v.length <= 128)
       : [],

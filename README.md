@@ -57,10 +57,11 @@ Every game inherits from the `template/` directory:
 
 The storage layer includes runtime hardening against client-side attacks:
 
-- **Prototype pollution defense** — `__proto__`, `constructor`, and `prototype` keys are stripped from all parsed localStorage data
-- **Content ID validation** — All public functions that accept `itemId`, `levelKey`, or `categoryId` validate against a strict pattern (`a-z`, `0-9`, `_`, `.`, `:`, `/`, `-`, max 128 chars) and explicitly reject prototype pollution keys. Invalid IDs are silently dropped.
-- **Input validation** — Numeric fields (XP, accuracy, multiplier, levelId) are clamped to safe bounds; NaN/Infinity/negative values are rejected
+- **Prototype pollution defense** — `__proto__`, `constructor`, and `prototype` keys are stripped from all parsed localStorage data (storage layer and sound settings)
+- **Content ID validation** — All public functions that accept `itemId`, `levelKey`, `categoryId`, or `currentCategory` validate against a strict pattern (`a-z`, `0-9`, `_`, `.`, `:`, `/`, `-`, max 128 chars) and explicitly reject prototype pollution keys. Invalid IDs are silently dropped.
+- **Input validation** — Numeric fields (XP, accuracy, multiplier, levelId, volume levels) are clamped to safe bounds; NaN/Infinity/negative values are rejected
 - **Game ID sanitization** — `configureStorage()` only accepts alphanumeric/hyphen/underscore IDs (1-64 chars), preventing localStorage key injection
+- **Share text sanitization** — Game names in social share output are stripped of control characters and newlines, truncated to 100 chars, preventing content injection in share previews
 - **Deserialization hardening** — All `JSON.parse()` paths (progress, mastery, FSRS, analytics) validate structure, strip dangerous keys, and type-check every field before use
 - **Event type whitelist** — Only the 5 defined learning event types are accepted
 

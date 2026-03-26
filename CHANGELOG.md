@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1] - 2026-03-26
+
+### Security
+- **`useSoundEffects` deserialization hardening** — `JSON.parse()` on localStorage was spread directly into state with zero validation. Added `validateSoundSettings()` with prototype pollution protection (`__proto__`, `constructor`, `prototype` stripped), strict boolean/number type enforcement, and volume clamping to [0, 1]. Previously a crafted `pl_sound_settings` payload could inject arbitrary keys or cause NaN propagation through Web Audio API (CWE-502, CWE-1321, OWASP A08).
+- **Share text input sanitization** — `gameName` in `generateShareText()` and `navigator.share()` was passed through unsanitized. Added `sanitizeShareString()` which strips control characters (U+0000–U+001F, U+007F–U+009F), newlines (prevents fake content injection in share previews), and enforces 100-char length limit. Empty names fall back to "Game" (CWE-20, OWASP A03).
+- **`currentCategory` validation tightened** — `validateProgress()` in `storage.ts` only enforced a 128-char length limit on `currentCategory` but didn't validate against `CONTENT_ID_PATTERN`. Now uses the same `isValidContentId()` check applied to all other content IDs, rejecting prototype pollution keys and non-whitelisted characters consistently (CWE-20).
+
 ## [0.6.0] - 2026-03-25
 
 ### Added
