@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (169 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share, player insights, spaced repetition — all passing)
+- **Testing**: Vitest (197 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API, player insights + edge cases, spaced repetition — all passing)
 - **Deployment**: Vercel (all 10 games live)
 
 ## Shared Game Systems
