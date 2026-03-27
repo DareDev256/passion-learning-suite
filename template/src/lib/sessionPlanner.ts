@@ -1,0 +1,181 @@
+// ─── Passionate Learning — Smart Session Planner ───
+// The auto-select brain: orchestrates FSRS reviews, adaptive difficulty,
+// and category weakness targeting into one optimal study session.
+// Pure functions — takes data in, returns a prioritized session plan.
+
+import { ContentItem } from "@/types/game";
+import { getProgress } from "@/lib/storage";
+import { getReviewQueue } from "@/lib/spacedRepetition";
+import { analyzeDifficulty, selectItems } from "@/lib/difficulty";
+import { computeCategoryStrengths, findWeakestItems } from "@/lib/insights";
+
+export type SessionItemReason = "review" | "weak-category" | "new" | "recall-bonus";
+
+export interface SessionItem {
+  item: ContentItem;
+  reason: SessionItemReason;
+  priority: number; // lower = more urgent
+}
+
+export interface SessionPlan {
+  items: SessionItem[];
+  reviewCount: number;
+  newCount: number;
+  weakCategoryCount: number;
+  recallBonusCount: number;
+  estimatedMinutes: number;
+  dominantReason: SessionItemReason;
+}
+
+interface PlanOptions {
+  sessionSize?: number;       // total items in session (default 10)
+  reviewRatio?: number;       // 0-1, portion reserved for reviews (default 0.4)
+  weakCategoryBoost?: number; // 0-1, portion of new items from weak categories (default 0.3)
+  minutesPerItem?: number;    // estimated time per item (default 0.75)
+}
+
+const DEFAULTS: Required<PlanOptions> = {
+  sessionSize: 10,
+  reviewRatio: 0.4,
+  weakCategoryBoost: 0.3,
+  minutesPerItem: 0.75,
+};
+
+/**
+ * Build an optimal study session by combining three signals:
+ * 1. FSRS review queue — items due for spaced repetition (highest priority)
+ * 2. Weak categories — new items from the player's weakest areas
+ * 3. Difficulty-matched new content — fresh items at the right challenge level
+ *
+ * Items with 7+ day recall bonuses (2×/3× XP) are flagged for motivation.
+ *
+ * @param items - Full content catalog
+ * @param options - Session configuration
+ * @returns Prioritized session plan with estimated duration
+ */
+export function planSession(
+  items: ContentItem[],
+  options: PlanOptions = {},
+): SessionPlan {
+  const opts = { ...DEFAULTS, ...options };
+  const progress = getProgress();
+  const scores = progress.itemScores;
+  const usedIds = new Set<string>();
+
+  const sessionItems: SessionItem[] = [];
+  const reviewSlots = Math.floor(opts.sessionSize * opts.reviewRatio);
+  const newSlots = opts.sessionSize - reviewSlots;
+
+  // ── Phase 1: FSRS review items (overdue first) ──
+  const queue = getReviewQueue(reviewSlots);
+  const itemMap = new Map(items.map((i) => [i.id, i]));
+
+  for (const id of queue.due) {
+    if (sessionItems.length >= reviewSlots) break;
+    const item = itemMap.get(id);
+    if (!item) continue;
+    const score = scores[id];
+    const daysSince = score ? (Date.now() - score.lastSeen) / 86_400_000 : 0;
+    sessionItems.push({
+      item,
+      reason: daysSince >= 7 ? "recall-bonus" : "review",
+      priority: 0,
+    });
+    usedIds.add(id);
+  }
+
+  // Fill remaining review slots from upcoming
+  for (const id of queue.upcoming) {
+    if (sessionItems.length >= reviewSlots) break;
+    if (usedIds.has(id)) continue;
+    const item = itemMap.get(id);
+    if (!item) continue;
+    sessionItems.push({ item, reason: "review", priority: 1 });
+    usedIds.add(id);
+  }
+
+  // ── Phase 2: Weak category targeting ──
+  const weakSlots = Math.floor(newSlots * opts.weakCategoryBoost);
+  const strengths = computeCategoryStrengths(items, scores);
+  const weakCategories = strengths
+    .filter((s) => s.accuracy < 70 && s.totalItems > 0)
+    .map((s) => s.categoryId);
+
+  if (weakCategories.length > 0) {
+    const weakItems = items
+      .filter((i) => weakCategories.includes(i.category) && !usedIds.has(i.id))
+      .sort((a, b) => {
+        const sa = scores[a.id];
+        const sb = scores[b.id];
+        if (!sa && sb) return -1; // unseen first
+        if (sa && !sb) return 1;
+        if (!sa && !sb) return 0;
+        return sa.lastSeen - sb.lastSeen; // oldest seen first
+      });
+
+    for (const item of weakItems.slice(0, weakSlots)) {
+      sessionItems.push({ item, reason: "weak-category", priority: 2 });
+      usedIds.add(item.id);
+    }
+  }
+
+  // ── Phase 3: Difficulty-matched new content ──
+  const remaining = opts.sessionSize - sessionItems.length;
+  if (remaining > 0) {
+    const profile = analyzeDifficulty(items);
+    const candidates = selectItems(
+      items.filter((i) => !usedIds.has(i.id)),
+      remaining,
+      profile,
+    );
+    for (const item of candidates) {
+      sessionItems.push({ item, reason: "new", priority: 3 });
+      usedIds.add(item.id);
+    }
+  }
+
+  // ── Build plan summary ──
+  const counts = { review: 0, new: 0, "weak-category": 0, "recall-bonus": 0 };
+  for (const si of sessionItems) counts[si.reason]++;
+
+  const dominantReason = (Object.entries(counts) as [SessionItemReason, number][])
+    .sort((a, b) => b[1] - a[1])[0][0];
+
+  return {
+    items: sessionItems.sort((a, b) => a.priority - b.priority),
+    reviewCount: counts.review + counts["recall-bonus"],
+    newCount: counts.new,
+    weakCategoryCount: counts["weak-category"],
+    recallBonusCount: counts["recall-bonus"],
+    estimatedMinutes: Math.ceil(sessionItems.length * opts.minutesPerItem),
+    dominantReason,
+  };
+}
+
+/**
+ * Quick check: does the player have pending reviews?
+ * Useful for showing "Reviews waiting!" badges without computing a full plan.
+ */
+export function hasReviewsDue(): boolean {
+  const queue = getReviewQueue(1);
+  return queue.due.length > 0;
+}
+
+/**
+ * Get a human-readable session summary for UI display.
+ * @example "4 reviews + 6 new items · ~8 min"
+ */
+export function describeSession(plan: SessionPlan): string {
+  const parts: string[] = [];
+  if (plan.reviewCount > 0) {
+    const bonus = plan.recallBonusCount > 0 ? ` (${plan.recallBonusCount} bonus XP!)` : "";
+    parts.push(`${plan.reviewCount} review${plan.reviewCount !== 1 ? "s" : ""}${bonus}`);
+  }
+  if (plan.weakCategoryCount > 0) {
+    parts.push(`${plan.weakCategoryCount} weak-area drill${plan.weakCategoryCount !== 1 ? "s" : ""}`);
+  }
+  if (plan.newCount > 0) {
+    parts.push(`${plan.newCount} new item${plan.newCount !== 1 ? "s" : ""}`);
+  }
+  return `${parts.join(" + ")} · ~${plan.estimatedMinutes} min`;
+}

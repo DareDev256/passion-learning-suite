@@ -35,6 +35,7 @@
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
 - **Testing**: Vitest (197 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API, player insights + edge cases, spaced repetition — all passing)
+- **Session Planning**: Smart auto-select via `planSession()` — FSRS reviews + weak-category targeting + difficulty-matched new content
 - **Deployment**: Vercel (all 10 games live)
 
 ## Shared Game Systems
@@ -49,6 +50,7 @@ Every game inherits from the `template/` directory:
 - **CRT Overlay** — retro scanlines + neon glow UI theme
 - **Accessibility** — WCAG 2.2 AA compliant
 - **Adaptive Difficulty** — Kumon-style auto-select: promotes at 85% accuracy, demotes at 50%, per-tier rolling window
+- **Smart Session Planner** — auto-select orchestrator combining FSRS reviews, weak-category drills, and difficulty-matched new content into optimal study sessions
 - **Analytics** — retention tracking, mastery metrics, per-question stats
 - **Player Insights** — visual analytics dashboard showing mastery rate, category strengths, retention recall bars, and weakest items needing review
 - **Social Share Cards** — retro-styled score cards with Web Share API (mobile) + clipboard fallback (desktop)
@@ -182,6 +184,18 @@ Pure functions for generating shareable score cards. Integrated into VictoryScre
 | `shareResults(data)` | Share via native share sheet (mobile) or clipboard fallback (desktop). Returns `"shared"`, `"copied"`, or `"failed"`. |
 
 The `ShareCard` component renders automatically in `VictoryScreen` when `gameName` is provided. Pass `streak`, `level`, and `gameUrl` for richer share cards.
+
+### Session Planner (`template/src/lib/sessionPlanner.ts`)
+
+Auto-select brain that orchestrates FSRS reviews, adaptive difficulty, and category weakness analysis into optimal study sessions. Three-phase planning: (1) FSRS overdue/upcoming reviews, (2) weak category targeting (<70% accuracy), (3) difficulty-matched new content.
+
+| Function | Description |
+|----------|-------------|
+| `planSession(items, options?)` | Build a prioritized session: review items first, weak-area drills second, new content third. Returns item list with reasons, counts, and estimated duration. |
+| `hasReviewsDue()` | Quick boolean check for pending FSRS reviews — for badge/notification UI. |
+| `describeSession(plan)` | Human-readable summary, e.g. `"4 reviews (2 bonus XP!) + 3 weak-area drills + 3 new items · ~8 min"`. |
+
+**Options**: `sessionSize` (default 10), `reviewRatio` (default 0.4), `weakCategoryBoost` (default 0.3), `minutesPerItem` (default 0.75).
 
 ### Player Insights (`template/src/lib/insights.ts`)
 

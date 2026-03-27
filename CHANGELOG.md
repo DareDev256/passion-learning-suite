@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0] - 2026-03-27
+
+### Added
+- **Smart Session Planner** (`lib/sessionPlanner.ts`) — Auto-select orchestrator that builds optimal study sessions by combining three intelligence signals: (1) FSRS spaced repetition review queue (overdue items first, upcoming items second), (2) weak category targeting (items from categories below 70% accuracy), and (3) difficulty-matched new content via the adaptive difficulty engine. Items with 7+ day gaps are flagged as `recall-bonus` for XP motivation. Configurable session size, review ratio, and weak-category boost.
+- `planSession(items, options?)` — Build a prioritized session plan with review/new/weak-category item mix, estimated duration, and dominant session type.
+- `hasReviewsDue()` — Lightweight check for pending FSRS reviews (for badge/notification UI without full plan computation).
+- `describeSession(plan)` — Human-readable session summary (e.g. `"4 reviews (2 bonus XP!) + 3 weak-area drills + 3 new items · ~8 min"`).
+
 ## [0.6.1] - 2026-03-26
 
 ### Security
