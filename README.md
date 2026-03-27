@@ -35,7 +35,8 @@
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
 - **Testing**: Vitest (197 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API, player insights + edge cases, spaced repetition — all passing)
-- **Session Planning**: Smart auto-select via `planSession()` — FSRS reviews + weak-category targeting + difficulty-matched new content
+- **Session UI**: `SessionBanner` component with animated progress bar, reason tags (review/bonus/weak/new), and composition pills
+- **Session Planning**: Smart auto-select via `useSessionPlanner()` hook — FSRS reviews + weak-category targeting + difficulty-matched new content + `SessionBanner` progress UI
 - **Deployment**: Vercel (all 10 games live)
 
 ## Shared Game Systems
@@ -82,7 +83,7 @@ passion-learning-suite/
 └── template/                # Shared Next.js base template
     └── src/
         ├── components/      # Game UI (Timer, VictoryScreen, etc.)
-        ├── hooks/           # useProgress, useGameStats, useSoundEffects, useDifficulty
+        ├── hooks/           # useProgress, useGameStats, useSoundEffects, useDifficulty, useSessionPlanner
         ├── lib/             # Storage, difficulty engine, formatters, insights, spaced repetition
         ├── data/            # Curriculum data template
         └── types/           # Shared TypeScript types
@@ -217,6 +218,13 @@ The `PlayerInsights` component (`components/game/PlayerInsights.tsx`) renders a 
 | `useGameStats()` | Real-time session tracker: accuracy, correct/incorrect counts, elapsed time. |
 | `useSoundEffects()` | 8-bit Web Audio API sounds with volume controls and localStorage persistence. |
 | `useDifficulty(items, batchSize?)` | Adaptive difficulty: auto-selects items, re-analyzes after rounds, manual override. |
+| `useSessionPlanner(items, options?)` | Smart session orchestrator: sequential item consumption with `advance()`/`skip()`, session description, progress tracking, and `replan()`. |
+
+### Session Banner (`template/src/components/game/SessionBanner.tsx`)
+
+Compact session status banner for the top of the game screen. Shows session composition (review/bonus/weak/new pills), animated progress bar, current item reason tag with contextual icons, and recall bonus XP callout. Animates between reason states and displays "SESSION COMPLETE" on finish.
+
+Props: `plan`, `description`, `progress`, `currentReason`, `isComplete` — all provided by `useSessionPlanner()`.
 
 ## Getting Started
 

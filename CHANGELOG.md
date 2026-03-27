@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.0] - 2026-03-27
+
+### Added
+- **`useSessionPlanner` hook** (`hooks/useSessionPlanner.ts`) — React integration for the smart session planner. Wraps `planSession()` with sequential item consumption: `advance()` moves to the next item after answering, `skip()` passes, `replan()` rebuilds from scratch. Exposes `currentItem`, `currentReason` (review/weak-category/new/recall-bonus), `progress` (current/total), `description` (human-readable summary), and `isComplete`. Memoized initial plan from content catalog.
+- **`SessionBanner` component** (`components/game/SessionBanner.tsx`) — Compact retro-styled session status banner for the top of game screens. Features: animated pixel progress bar, reason tag with contextual icons (review/bonus XP/weak area/new), composition pills showing session mix, animated transitions between reason states via AnimatePresence, and "SESSION COMPLETE" spring animation on finish.
+
 ## [0.7.0] - 2026-03-27
 
 ### Added
