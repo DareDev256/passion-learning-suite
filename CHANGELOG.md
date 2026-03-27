@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.1] - 2026-03-27
+
+### Added
+- **27 new tests** (169→196 total) — `sessionPlanner.test.ts` covering: plan shape validation, session size/empty/small catalog handling, item deduplication, priority sorting, estimated minutes scaling, FSRS review slot filling, recall-bonus flagging (7+ day gap) vs recent items, weak-category targeting (<70% accuracy) with category verification, strong-category skip, dominant reason inference, `describeSession` singular/plural grammar for reviews/new items/drills + bonus XP notation + multi-part joining, `hasReviewsDue` with no cards/overdue/future-scheduled.
+
 ## [0.8.0] - 2026-03-27
 
 ### Added
