@@ -4,7 +4,22 @@
 
 import { SessionPlan, SessionItemReason } from "@/lib/sessionPlanner";
 
-/** Pick a motivational message based on what dominated the session. */
+/**
+ * Select a motivational recap message based on session composition.
+ * Priority: recall-bonus count (≥2) overrides dominant reason check.
+ * Falls back to the `dominantReason` field from the session plan.
+ *
+ * @param plan - Completed session plan from `planSession()`
+ * @returns Human-readable motivational string. Returns an empty-session
+ *          fallback if `plan.items` is empty.
+ *
+ * @example
+ * ```ts
+ * const plan = planSession(items);
+ * const message = getRecapMessage(plan);
+ * // → "Solid review session — each repetition deepens the neural pathway."
+ * ```
+ */
 export function getRecapMessage(plan: SessionPlan): string {
   const { dominantReason, items, recallBonusCount } = plan;
   const total = items.length;
@@ -25,7 +40,20 @@ export function getRecapMessage(plan: SessionPlan): string {
   }
 }
 
-/** Map memory strength 0-100 to a tier label. */
+/**
+ * Map a 0–100 memory strength score to a display tier with color tokens.
+ * Thresholds: Strong ≥ 75, Building ≥ 40, Fragile > 0, New = 0.
+ *
+ * @param strength - Memory strength from `computeMemoryStrength()` (0–100)
+ * @returns Object with `label` (tier name), `color` (text Tailwind class),
+ *          and `barColor` (background Tailwind class) for the strength meter.
+ *
+ * @example
+ * ```ts
+ * const tier = memoryTier(82);
+ * // → { label: "STRONG", color: "text-game-success", barColor: "bg-game-success" }
+ * ```
+ */
 export function memoryTier(strength: number): { label: string; color: string; barColor: string } {
   if (strength >= 75) return { label: "STRONG",   color: "text-game-success", barColor: "bg-game-success" };
   if (strength >= 40) return { label: "BUILDING", color: "text-game-warning", barColor: "bg-game-warning" };

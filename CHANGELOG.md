@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1] - 2026-03-28
+
+### Changed
+- **JSDoc enrichment** — Added full `@param`, `@returns`, and `@example` blocks to `getRecapMessage()` and `memoryTier()` in `sessionRecapMessages.ts`. Both functions now show realistic return values in IDE hover previews.
+- **README: Session Recap Messages API** — New reference table documenting `getRecapMessage()` and `memoryTier()` with tier thresholds (Strong ≥ 75, Building ≥ 40, Fragile > 0, New = 0).
+- **README: Components reference** — Added props tables for all 10 components (4 UI + 6 game), including `VictoryScreen` `speedLabel` regex behavior and `SessionRecap` prop surface. Components were previously undiscoverable without reading source.
+
 ## [0.9.0] - 2026-03-28
 
 ### Added

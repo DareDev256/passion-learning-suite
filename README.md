@@ -211,6 +211,39 @@ Pure computation functions that transform raw progress data into displayable lea
 
 The `PlayerInsights` component (`components/game/PlayerInsights.tsx`) renders a retro-styled analytics panel with: Learning Pulse overview (items seen/mastered, mastery rate, time-to-mastery), 7-day and 30-day retention recall bars, per-category strength breakdown with animated progress bars, and a "Needs Work" section highlighting weakest items.
 
+### Session Recap Messages (`template/src/lib/sessionRecapMessages.ts`)
+
+Pure functions for post-session motivational feedback. Extracted from `SessionRecap` so they're independently testable without jsdom.
+
+| Function | Description |
+|----------|-------------|
+| `getRecapMessage(plan)` | Select motivational text based on session composition. Recall-bonus count (≥2) overrides dominant reason. Returns an empty-session fallback when `plan.items` is empty. |
+| `memoryTier(strength)` | Map 0–100 memory strength to tier: **Strong** (≥75), **Building** (≥40), **Fragile** (>0), **New** (0). Returns `label`, `color`, and `barColor` Tailwind tokens for the strength meter. |
+
+### Components
+
+All components live under `template/src/components/` and are split into `ui/` (reusable primitives) and `game/` (domain-specific).
+
+#### UI Components
+
+| Component | Props | Description |
+|-----------|-------|-------------|
+| `Button` | `variant` (`primary` / `secondary` / `ghost`), `size`, `disabled`, `onClick`, `children` | Retro pixel button with variant styling. |
+| `Logo` | — | Game logo with pixel font treatment. |
+| `StreakBadge` | `streak`, `freezes` | Displays daily streak count and available freezes. |
+| `XPBar` | `xp`, `level` | XP progress bar with level milestone markers. Fills to 100 XP per level. |
+
+#### Game Components
+
+| Component | Props | Description |
+|-----------|-------|-------------|
+| `Timer` | `seconds`, `total`, `onExpire` | Countdown timer with percentage-based progress bar. |
+| `VictoryScreen` | `accuracy`, `correct`, `total`, `elapsed`, `speedLabel?`, `gameName?`, `streak?`, `level?`, `gameUrl?`, `onRestart` | Post-level results with letter grade (S/A/B/C/D/F), stats, and optional share card. `speedLabel` matching `/time\|duration\|elapsed\|seconds?/i` renders as `mm:ss`. |
+| `ShareCard` | `gameName`, `accuracy`, `grade`, `streak?`, `level?`, `gameUrl?` | Retro-styled social share card. Uses Web Share API on mobile, clipboard fallback on desktop. |
+| `PlayerInsights` | `items`, `scores` | Analytics dashboard: mastery rate, category strengths, retention bars, weakest items. |
+| `SessionBanner` | `plan`, `description`, `progress`, `currentReason`, `isComplete` | Live session status banner with animated progress bar, reason tags (review/bonus/weak/new), and composition pills. All props provided by `useSessionPlanner()`. |
+| `SessionRecap` | `plan`, `memoryStrength`, `onNewSession` | Post-session debrief: reason breakdown, animated memory strength meter with tier labels, motivational message, and action buttons. |
+
 ### React Hooks
 
 | Hook | Description |
