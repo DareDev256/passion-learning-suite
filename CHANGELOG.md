@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0] - 2026-03-28
+
+### Added
+- **`SessionRecap` component** (`components/game/SessionRecap.tsx`) — Post-session debrief screen shown when a session completes. Surfaces: session breakdown by reason type (reinforced/bonus recall/drilled/discovered) with per-reason counts, animated memory strength meter with tier labels (Strong/Building/Fragile/New) powered by FSRS stability data via `computeMemoryStrength()`, contextual motivational messages that adapt to session composition (review-dominant, weak-category drill, new content, recall-bonus heavy), and action buttons for starting a new session or viewing insights. Staggered Framer Motion entrance animations with spring physics on the header.
+- **`sessionRecapMessages` lib** (`lib/sessionRecapMessages.ts`) — Pure functions extracted for testability: `getRecapMessage(plan)` selects motivational feedback based on dominant session reason and recall bonus count, `memoryTier(strength)` maps 0-100 memory strength to tier label + color tokens.
+- **10 new tests** (207→217 total) — `sessionRecap.test.ts` covering: empty session message, review/weak-category/new/recall-bonus dominant messages, recall-bonus priority override (2+ bonuses), and `memoryTier` boundary thresholds (Strong≥75, Building≥40, Fragile>0, New=0).
+
 ## [0.8.2] - 2026-03-28
 
 ### Added
