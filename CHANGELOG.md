@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.2] - 2026-03-28
+
+### Added
+- **11 new tests** (196→207 total) — `sessionPlanner-edge-cases.test.ts` covering: review queue fallback to upcoming items with priority validation, orphaned FSRS card references (deleted items silently skipped), extreme ratio edge cases (`reviewRatio: 0/1`, `weakCategoryBoost: 0`), multi-weak-category targeting across category boundaries, `describeSession` with all-zero/empty plans and full three-section ordering verification, three-phase integration test ensuring review→weak→new pipeline produces no duplicates and respects phase boundaries.
+
 ## [0.8.1] - 2026-03-27
 
 ### Added
