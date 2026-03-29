@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.9.2] - 2026-03-29
+
+### Changed
+- **Refactor: SessionBanner extracted to `session/` directory** — Moved `SessionBanner` from `components/game/` to `components/session/` to group session-related UI components together. No API or behavior changes.
+
 ## [0.9.1] - 2026-03-28
 
 ### Changed

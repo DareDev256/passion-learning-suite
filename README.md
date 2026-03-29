@@ -254,7 +254,7 @@ All components live under `template/src/components/` and are split into `ui/` (r
 | `useDifficulty(items, batchSize?)` | Adaptive difficulty: auto-selects items, re-analyzes after rounds, manual override. |
 | `useSessionPlanner(items, options?)` | Smart session orchestrator: sequential item consumption with `advance()`/`skip()`, session description, progress tracking, and `replan()`. |
 
-### Session Banner (`template/src/components/game/SessionBanner.tsx`)
+### Session Banner (`template/src/components/session/SessionBanner.tsx`)
 
 Compact session status banner for the top of the game screen. Shows session composition (review/bonus/weak/new pills), animated progress bar, current item reason tag with contextual icons, and recall bonus XP callout. Animates between reason states and displays "SESSION COMPLETE" on finish.
 
