@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0] - 2026-03-30
+
+### Added
+- **`ActivityHeatmap` component** (`components/game/ActivityHeatmap.tsx`) — GitHub-style pixel-art activity calendar showing daily learning events over 12 weeks. Features: logarithmic intensity scaling (5 levels from empty to max), hover tooltips with event count and date, spring-animated cell zoom on hover, stat pills showing active days/current streak/best streak, and intensity legend. Reads events across all game namespaces for suite-wide activity tracking.
+- **`activityHeatmap` lib** (`lib/activityHeatmap.ts`) — Pure functions: `buildHeatmap(events, weeks)` aggregates `LearningEvent[]` into a `HeatmapData` grid with per-day counts, intensity levels, and streak computation. `toDateKey()` for timestamp→date conversion, `countToIntensity()` for logarithmic bucketing, `computeStreaks()` for current/best streak calculation from date sets.
+- **18 new tests** (217→235 total) — `activityHeatmap.test.ts` covering: `toDateKey` formatting + padding, `countToIntensity` all 5 threshold boundaries, `computeStreaks` empty/single/consecutive/gap/historical scenarios, `buildHeatmap` day count, all-zero baseline, event aggregation, window exclusion, intensity mapping, and streak derivation.
+
 ## [0.9.2] - 2026-03-29
 
 ### Changed
