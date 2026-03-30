@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (235 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API, player insights + edge cases, spaced repetition, session planner + edge cases, session recap messages, auto-select integration, activity heatmap — all passing)
+- **Testing**: Vitest (251 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API, player insights + edge cases, spaced repetition, session planner + edge cases, session recap messages, auto-select integration, activity heatmap, category radar geometry — all passing)
 - **Session UI**: `SessionBanner` component with animated progress bar, reason tags (review/bonus/weak/new), and composition pills
 - **Session Planning**: Smart auto-select via `useSessionPlanner()` hook — FSRS reviews + weak-category targeting + difficulty-matched new content + `SessionBanner` progress UI + `SessionRecap` post-session debrief with memory strength meter
 - **Deployment**: Vercel (all 10 games live)
@@ -54,6 +54,7 @@ Every game inherits from the `template/` directory:
 - **Smart Session Planner** — auto-select orchestrator combining FSRS reviews, weak-category drills, and difficulty-matched new content into optimal study sessions
 - **Session Recap** — post-session debrief with reason breakdown (reinforced/bonus/drilled/discovered), memory strength meter (FSRS stability → tier), and contextual motivational messages
 - **Activity Heatmap** — GitHub-style pixel-art calendar showing daily learning activity over 12 weeks, with intensity mapping, best streak stats, and hover tooltips
+- **Category Radar** — SVG radar chart with neon glow showing mastery polygon across all categories, animated with Framer Motion springs
 - **Analytics** — retention tracking, mastery metrics, per-question stats
 - **Player Insights** — visual analytics dashboard showing mastery rate, category strengths, retention recall bars, and weakest items needing review
 - **Social Share Cards** — retro-styled score cards with Web Share API (mobile) + clipboard fallback (desktop)
@@ -212,6 +213,17 @@ Pure computation functions that transform raw progress data into displayable lea
 
 The `PlayerInsights` component (`components/game/PlayerInsights.tsx`) renders a retro-styled analytics panel with: Learning Pulse overview (items seen/mastered, mastery rate, time-to-mastery), 7-day and 30-day retention recall bars, per-category strength breakdown with animated progress bars, and a "Needs Work" section highlighting weakest items.
 
+### Category Radar (`template/src/lib/categoryRadar.ts`)
+
+Pure geometry functions for rendering SVG radar charts from category strength data.
+
+| Function | Description |
+|----------|-------------|
+| `polarToCartesian(angle, radius, cx, cy)` | Convert polar coordinate to cartesian. 0° = top (12 o'clock), clockwise. |
+| `computeRadarPoints(strengths, radius, cx, cy)` | Map category accuracies to SVG polygon vertices. Returns empty array if < 3 categories. |
+| `pointsToPolygon(pts)` | Convert radar points to SVG `<polygon points="...">` string. |
+| `computeAxisEndpoints(count, radius, cx, cy)` | Generate grid axis line endpoints from center to edge. |
+
 ### Session Recap Messages (`template/src/lib/sessionRecapMessages.ts`)
 
 Pure functions for post-session motivational feedback. Extracted from `SessionRecap` so they're independently testable without jsdom.
@@ -245,6 +257,7 @@ All components live under `template/src/components/` and are split into `ui/` (r
 | `SessionBanner` | `plan`, `description`, `progress`, `currentReason`, `isComplete` | Live session status banner with animated progress bar, reason tags (review/bonus/weak/new), and composition pills. All props provided by `useSessionPlanner()`. |
 | `SessionRecap` | `plan`, `memoryStrength`, `onNewSession` | Post-session debrief: reason breakdown, animated memory strength meter with tier labels, motivational message, and action buttons. |
 | `ActivityHeatmap` | `progress`, `weeks?` | Pixel-art activity calendar (12 weeks default). Aggregates `LearningEvent` timestamps + `itemScore.lastSeen` into daily intensity grid with hover tooltips, streak/active-day stats, and staggered entrance animation. |
+| `CategoryRadar` | `strengths`, `size?` | SVG radar chart visualizing category mastery as a neon polygon with concentric grid, axis labels, animated fill, and glow effects. Requires 3+ categories. |
 
 ### React Hooks
 

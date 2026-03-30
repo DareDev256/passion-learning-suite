@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0] - 2026-03-30
+
+### Added
+- **`CategoryRadar` component** (`components/game/CategoryRadar.tsx`) — SVG radar chart visualizing category mastery as a neon polygon. Features: concentric ring grid (25/50/75/100%), axis lines per category, animated polygon fill with glow filter, spring-animated data point dots, color-coded category labels (green ≥70%, yellow ≥40%, red <40%), center average accuracy readout, and full ARIA labeling. Requires 3+ categories to render.
+- **`categoryRadar` lib** (`lib/categoryRadar.ts`) — Pure geometry functions: `polarToCartesian(angle, radius, cx, cy)` converts polar→cartesian with 12-o'clock origin, `computeRadarPoints(strengths, radius, cx, cy)` maps category accuracies to polygon vertices, `pointsToPolygon(pts)` generates SVG polygon strings, `computeAxisEndpoints(count, radius, cx, cy)` generates grid axis coordinates.
+- **16 new tests** (235→251 total) — `categoryRadar.test.ts` covering: `polarToCartesian` cardinal directions (0°/90°/180°/270°) + zero-radius center, `computeRadarPoints` minimum-3 threshold, 100%/0% accuracy extremes, label/value preservation, 4-category 90° distribution, `pointsToPolygon` formatting + empty array, `computeAxisEndpoints` minimum-3 guard + count + top-origin.
+
 ## [0.10.0] - 2026-03-30
 
 ### Added
