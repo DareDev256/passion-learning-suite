@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (286 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API + CWE-20 sanitization, player insights + edge cases + boundary coverage, spaced repetition, session planner + edge cases, session recap messages + threshold boundaries, auto-select integration, activity heatmap, category radar geometry — all passing)
+- **Testing**: Vitest (278 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API + CWE-20 sanitization, player insights + edge cases + boundary coverage, spaced repetition, session planner + edge cases, session recap messages + threshold boundaries, auto-select integration, activity heatmap, category radar geometry, boundary value analysis + prototype pollution input vectors + corruption recovery — all passing)
 - **Session UI**: `SessionBanner` component with animated progress bar, reason tags (review/bonus/weak/new), and composition pills
 - **Session Planning**: Smart auto-select via `useSessionPlanner()` hook — FSRS reviews + weak-category targeting + difficulty-matched new content + `SessionBanner` progress UI + `SessionRecap` post-session debrief with memory strength meter
 - **Deployment**: Vercel (all 10 games live)
