@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0] - 2026-03-31
+
+### Added
+- **`RetentionCurve` component** (`components/game/RetentionCurve.tsx`) — Animated SVG visualization of the Ebbinghaus forgetting curve overlaid with the player's actual retention data. Features: theoretical decay line (dashed, amber), actual retention curve (solid, neon glow), color-coded data points (green = beating the curve, red = below), hover tooltips showing retention % and review count, gradient fill under actual curve, stat pills (overall retention, total reviews, 7-day recall), responsive legend, and empty-state messaging. Reads events across all game namespaces. Spring-animated entrance via Framer Motion.
+- **`retentionCurve` lib** (`lib/retentionCurve.ts`) — Pure functions: `ebbinghaus(day, stability)` computes theoretical retention via R=e^(-t/S), `findNearestBucket(days)` maps review intervals to measurement buckets with adaptive thresholds, `bucketByInterval(events)` aggregates learning events into day-interval retention rates, `computeRetentionCurve(events)` produces full curve data with theoretical + actual points, `retentionToSVG(day, retention, w, h, pad)` maps data to SVG coordinates, `pointsToPath(coords)` generates smooth cubic bezier SVG paths.
+- **30 new tests** (251→281 total) — `retentionCurve.test.ts` covering: `ebbinghaus` day-0 baseline, negative days, decay ordering, NaN/zero/negative stability, stability comparison, integer rounding; `findNearestBucket` exact matches, null for out-of-range/negative/NaN, adaptive threshold bucketing at multiple intervals; `bucketByInterval` empty events, first_correct counting, review_correct/incorrect bucketing, non-review event filtering; `computeRetentionCurve` zero-event baseline, mixed-event actual retention, theoretical monotonic decay; `retentionToSVG` corner mapping, center retention; `pointsToPath` empty/single/multi-point bezier generation.
+
 ## [0.11.1] - 2026-03-31
 
 ### Added

@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (278 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API + CWE-20 sanitization, player insights + edge cases + boundary coverage, spaced repetition, session planner + edge cases, session recap messages + threshold boundaries, auto-select integration, activity heatmap, category radar geometry, boundary value analysis + prototype pollution input vectors + corruption recovery — all passing)
+- **Testing**: Vitest (281 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API + CWE-20 sanitization, player insights + edge cases + boundary coverage, spaced repetition, session planner + edge cases, session recap messages + threshold boundaries, auto-select integration, activity heatmap, category radar geometry, retention curve (Ebbinghaus + bucket matching + SVG mapping), boundary value analysis + prototype pollution input vectors + corruption recovery — all passing)
 - **Session UI**: `SessionBanner` component with animated progress bar, reason tags (review/bonus/weak/new), and composition pills
 - **Session Planning**: Smart auto-select via `useSessionPlanner()` hook — FSRS reviews + weak-category targeting + difficulty-matched new content + `SessionBanner` progress UI + `SessionRecap` post-session debrief with memory strength meter
 - **Deployment**: Vercel (all 10 games live)
@@ -55,6 +55,7 @@ Every game inherits from the `template/` directory:
 - **Session Recap** — post-session debrief with reason breakdown (reinforced/bonus/drilled/discovered), memory strength meter (FSRS stability → tier), and contextual motivational messages
 - **Activity Heatmap** — GitHub-style pixel-art calendar showing daily learning activity over 12 weeks, with intensity mapping, best streak stats, and hover tooltips
 - **Category Radar** — SVG radar chart with neon glow showing mastery polygon across all categories, animated with Framer Motion springs
+- **Retention Curve** — Animated Ebbinghaus forgetting curve visualization comparing theoretical memory decay against actual player retention at 0/1/3/7/14/30-day intervals, with neon SVG rendering, hover tooltips, and color-coded data points (green = beating the curve, red = below)
 - **Analytics** — retention tracking, mastery metrics, per-question stats
 - **Player Insights** — visual analytics dashboard showing mastery rate, category strengths, retention recall bars, and weakest items needing review
 - **Social Share Cards** — retro-styled score cards with Web Share API (mobile) + clipboard fallback (desktop)
