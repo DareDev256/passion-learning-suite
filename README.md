@@ -76,6 +76,8 @@ The storage layer includes runtime hardening against client-side attacks:
 ```
 passion-learning-suite/
 ├── MASTER_SPEC.md           # Full pedagogy + architecture specification
+├── docs/                    # Deep-dive technical documentation
+│   └── adaptive-difficulty.md  # Tier-ladder algorithm, tuning, integration
 ├── specs/                   # Per-game design documents
 │   ├── 01-prompt-craft.md
 │   ├── 02-token-prophet.md
@@ -151,12 +153,14 @@ Active scheduling engine that bridges ts-fsrs with the storage layer. The storag
 | `recordLearningEvent(event)` | Track a learning event (5 valid types, max 1,000 stored). |
 | `getLearningAnalytics()` | Aggregate stats: items seen/mastered, retention rates, time-to-mastery. |
 
-### Adaptive Difficulty (`template/src/lib/difficulty.ts`)
+### Adaptive Difficulty (`template/src/lib/difficulty.ts`) — [Full Docs](docs/adaptive-difficulty.md)
+
+Kumon-style diagnostic placement engine. Analyzes rolling performance across three tiers, auto-promotes at 85% accuracy, auto-demotes below 50%. See the [dedicated documentation](docs/adaptive-difficulty.md) for the tier-ladder algorithm, tuning constants, fallback logic, and integration guide.
 
 | Function | Description |
 |----------|-------------|
-| `analyzeDifficulty(items)` | Analyze player's per-tier performance, return recommended difficulty + confidence. |
-| `selectItems(items, count?, profile?)` | Pick items at recommended difficulty. Prefers unseen, falls back to adjacent tiers. |
+| `analyzeDifficulty(items)` | Analyze player's per-tier performance from a rolling window of 5 recent answers. Returns recommended difficulty, per-tier accuracy/streak, and confidence level (`new`/`low`/`high`). |
+| `selectItems(items, count?, profile?)` | Pick items at recommended difficulty. Prioritizes unseen → oldest-seen. Falls back to adjacent tiers with a growth-mindset bias (harder before easier). |
 
 ### Display Formatters (`template/src/lib/formatters.ts`)
 

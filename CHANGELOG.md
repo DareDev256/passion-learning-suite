@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.1] - 2026-03-31
+
+### Added
+- **Adaptive Difficulty Engine documentation** (`docs/adaptive-difficulty.md`) — Dedicated deep-dive covering the Kumon-style tier-ladder algorithm, tuning constants (`WINDOW=5`, `PROMOTE_THRESHOLD=85%`, `DEMOTE_THRESHOLD=50%`), confidence levels, growth-mindset-biased tier fallback order, `useDifficulty` hook integration guide, and session planner interaction diagram. The engine drives all 10 games but previously had only a 2-row API table in the README.
+
+### Changed
+- **README: Adaptive Difficulty section** — Expanded from bare function signatures to include promotion/demotion thresholds, confidence levels, fallback bias explanation, and a link to the full documentation. Added `docs/` directory to repo structure tree.
+
 ## [0.11.0] - 2026-03-30
 
 ### Added
