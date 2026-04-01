@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (281 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API + CWE-20 sanitization, player insights + edge cases + boundary coverage, spaced repetition, session planner + edge cases, session recap messages + threshold boundaries, auto-select integration, activity heatmap, category radar geometry, retention curve (Ebbinghaus + bucket matching + SVG mapping), boundary value analysis + prototype pollution input vectors + corruption recovery — all passing)
+- **Testing**: Vitest (306 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API + CWE-20 sanitization, player insights + edge cases + boundary coverage, spaced repetition, session planner + edge cases, session recap messages + threshold boundaries, auto-select integration, activity heatmap, category radar geometry, retention curve (Ebbinghaus + bucket matching + SVG mapping), daily challenge (deterministic seeding + bonus XP + localStorage persistence + expiry), boundary value analysis + prototype pollution input vectors + corruption recovery — all passing)
 - **Session UI**: `SessionBanner` component with animated progress bar, reason tags (review/bonus/weak/new), and composition pills
 - **Session Planning**: Smart auto-select via `useSessionPlanner()` hook — FSRS reviews + weak-category targeting + difficulty-matched new content + `SessionBanner` progress UI + `SessionRecap` post-session debrief with memory strength meter
 - **Deployment**: Vercel (all 10 games live)
@@ -56,6 +56,7 @@ Every game inherits from the `template/` directory:
 - **Activity Heatmap** — GitHub-style pixel-art calendar showing daily learning activity over 12 weeks, with intensity mapping, best streak stats, and hover tooltips
 - **Category Radar** — SVG radar chart with neon glow showing mastery polygon across all categories, animated with Framer Motion springs
 - **Retention Curve** — Animated Ebbinghaus forgetting curve visualization comparing theoretical memory decay against actual player retention at 0/1/3/7/14/30-day intervals, with neon SVG rendering, hover tooltips, and color-coded data points (green = beating the curve, red = below)
+- **Daily Challenge** — deterministic date-seeded challenge (same for all players), rotating focus categories, streak-aware bonus XP (1.5×–3×), perfect accuracy bonus, midnight expiry countdown
 - **Analytics** — retention tracking, mastery metrics, per-question stats
 - **Player Insights** — visual analytics dashboard showing mastery rate, category strengths, retention recall bars, and weakest items needing review
 - **Social Share Cards** — retro-styled score cards with Web Share API (mobile) + clipboard fallback (desktop)
@@ -205,6 +206,19 @@ Auto-select brain that orchestrates FSRS reviews, adaptive difficulty, and categ
 | `describeSession(plan)` | Human-readable summary, e.g. `"4 reviews (2 bonus XP!) + 3 weak-area drills + 3 new items · ~8 min"`. |
 
 **Options**: `sessionSize` (default 10), `reviewRatio` (default 0.4), `weakCategoryBoost` (default 0.3), `minutesPerItem` (default 0.75).
+
+### Daily Challenge (`template/src/lib/dailyChallenge.ts`)
+
+Deterministic daily challenge engine. Every player gets the same challenge on a given day via date-seeded PRNG. Focus category rotates daily across the content catalog. Bonus XP scales with streak.
+
+| Function | Description |
+|----------|-------------|
+| `generateDailyChallenge(items, size?)` | Build today's challenge: 5 items (3 from focus category, 2 from others), with streak-aware bonus multiplier (1.5× base, +0.5× per 5 streak days, max 3×). Deterministic — same date = same items. |
+| `calculateDailyBonusXP(correct, total, multiplier)` | Compute bonus XP: `correct × 10 × multiplier`, plus 25 flat bonus for perfect accuracy. |
+| `isDailyChallengeComplete()` | Check if today's challenge has been completed. |
+| `saveDailyChallengeResult(result)` | Persist today's result to localStorage. |
+| `getDailyChallengeResult()` | Load today's result (null if not yet attempted or from a previous day). |
+| `timeUntilExpiry(expiresAt)` | Format countdown: `"3h 45m"`, `"30m"`, or `"Expired"`. |
 
 ### Player Insights (`template/src/lib/insights.ts`)
 

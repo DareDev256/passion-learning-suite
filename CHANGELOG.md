@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.13.0] - 2026-04-01
+
+### Added
+- **`dailyChallenge` lib** (`lib/dailyChallenge.ts`) — Deterministic daily challenge engine that generates the same challenge for all players on a given day. Uses date-seeded PRNG (djb2 hash + mulberry32) for reproducible item selection, rotating focus categories daily. Features: streak-aware bonus multiplier (1.5× base, +0.5× per 5 streak days, max 3×), perfect accuracy bonus (+25 XP), expiry countdown formatter, and localStorage persistence for completion tracking. Challenge items are weighted 3:2 toward the day's focus category for themed learning sessions.
+- **25 new tests** (281→306 total) — `dailyChallenge.test.ts` covering: deterministic seeding (same date = same items), challenge size (default 5, custom, edge cases), focus category validation and rotation, expiry timestamp, streak-based multiplier calculation, empty/undersized catalog handling, no-duplicate guarantee, bonus XP calculation (base × multiplier, perfect bonus, zero cases, rounding), time-until-expiry formatting (hours+minutes, minutes-only, expired), localStorage persistence (save/retrieve/yesterday-expiry/incomplete-state), date key format validation.
+
 ## [0.12.0] - 2026-03-31
 
 ### Added
