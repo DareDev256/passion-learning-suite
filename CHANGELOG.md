@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.0] - 2026-04-02
+
+### Added
+- **Achievement system** (`lib/achievements.ts`) — 11 unlockable achievements across 3 tiers (bronze/silver/gold) rewarding learning-positive behaviors: first level completion, streak milestones (3/7/30 days), XP thresholds (1K/10K), perfect accuracy sessions, mastery count, 7-day retention rate, and time-of-day play (night owl/early bird). Idempotent unlock via localStorage with validation against malformed data. Variable reward schedule inspired by Duolingo's engagement research.
+- **`AchievementToast` component** (`components/game/AchievementToast.tsx`) — Spring-animated toast notification on achievement unlock with tier-specific border colors and glow effects (amber/silver/gold). Auto-dismisses after 4 seconds. ARIA-labeled for screen readers.
+- **`TrophyCase` component** (`components/game/AchievementToast.tsx`) — Grid display of all achievements with locked/unlocked states. Locked achievements show as grayscale mystery boxes. Sorted by tier. Hover-to-reveal descriptions.
+- **22 new tests** (306→328 total) — `achievements.test.ts` covering: unique IDs, required fields, empty-state returns, milestone unlocks (first_step, streak_3, streak_7, centurion, xp_titan), accuracy gating (perfect at 100%, not at 99%), analytics-driven unlocks (ten_mastered, recall_ace), idempotent double-unlock prevention, time-of-day achievements with `vi.useFakeTimers` (night_owl at 2AM, early_bird at 6AM, neither at 2PM), malformed localStorage recovery, invalid entry filtering, trophy case completeness and tier sorting.
+
 ## [0.13.0] - 2026-04-01
 
 ### Added
