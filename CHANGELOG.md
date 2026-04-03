@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.16.1] - 2026-04-03
+
+### Added
+- **23 new edge-case tests** (355→378 total) — `edgeCases.test.ts` covering critical untested security and corruption recovery paths:
+  - **Write-path prototype pollution rejection**: `completeLevel`, `updateItemScore`, `saveFSRSCard`, `getRecallMultiplier`, `recordMasteryAttempt` all reject `__proto__`/`constructor`/`prototype` IDs silently without corrupting state
+  - **itemScores corruption recovery**: non-object score values stripped, NaN/undefined numeric fields clamped to 0, `completedLevels` entries exceeding 128 chars filtered out
+  - **checkMastery hardening**: non-object stored mastery data returns false, attempts with NaN/Infinity accuracy filtered as invalid
+  - **Daily challenge corruption**: `isDailyChallengeComplete` and `getDailyChallengeResult` gracefully recover from malformed JSON and expired results
+  - **memoryTier boundary precision**: color token assertions (success/warning/error/accent) for all 4 tiers, boundary value tests at 74→BUILDING and 39→FRAGILE thresholds
+
 ## [0.16.0] - 2026-04-03
 
 ### Added
