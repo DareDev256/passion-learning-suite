@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.16.0] - 2026-04-03
+
+### Added
+- **`SessionForecast` component** (`components/session/SessionForecast.tsx`) — Pre-session overview screen that visualizes the auto-select brain's plan before gameplay begins. Shows a stacked composition bar (review/bonus/weak/new segments with animated fill), a scrollable item queue with per-item reason tags and prompt previews (truncated at 50 chars), recall bonus XP callout for 7+ day items, estimated session time, and a "BEGIN SESSION" CTA. Empty-state messaging ("ALL CAUGHT UP") when no items are due. Staggered Framer Motion entrance with cascading `fadeUp` reveals. Matches the CRT/neon design system with `pixel-border`, `neon-glow`, and `font-pixel` tokens. Builds metacognitive awareness by explaining *why* each item was selected — research shows learners who understand their study plan retain 20-30% more.
+- **10 new tests** (345→355 total) — `sessionForecast.test.ts` covering: empty plan zero-state, composition count summation (review+bonus+weak+new = total items), recall-bonus reason tagging, percentage calculation for composition segments, prompt truncation at 50 chars with ellipsis, single-item session handling, reason type uniqueness (4 distinct identifiers), dominant reason validation, estimated minutes positivity, and priority ordering (lower = more urgent).
+
 ## [0.15.0] - 2026-04-03
 
 ### Added
