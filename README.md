@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (350 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API + CWE-20 sanitization, player insights + edge cases + boundary coverage, spaced repetition, session planner + edge cases, session recap messages + threshold boundaries, auto-select integration, activity heatmap, category radar geometry, retention curve (Ebbinghaus + bucket matching + SVG mapping), daily challenge (deterministic seeding + bonus XP + localStorage persistence + expiry), achievements (idempotent unlock, tier gating, time-of-day mocking, localStorage validation, trophy case sorting), boundary value analysis + prototype pollution input vectors + corruption recovery, storage-security integration (prototype pollution rejection across 6 functions, corrupted localStorage recovery with NaN/Infinity/overlong keys, cross-namespace isolation, full learning lifecycle pipeline, FSRS priority over naive fallback, analytics edge cases with orphan/duplicate/out-of-order events, streak freeze boundaries) — all passing)
+- **Testing**: Vitest (345 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API + CWE-20 sanitization, player insights + edge cases + boundary coverage, spaced repetition, session planner + edge cases, session recap messages + threshold boundaries, auto-select integration, activity heatmap, category radar geometry, retention curve (Ebbinghaus + bucket matching + SVG mapping), daily challenge (deterministic seeding + bonus XP + localStorage persistence + expiry), achievements (idempotent unlock, tier gating, time-of-day mocking, localStorage validation, trophy case sorting), sound engine (Web Audio mock, oscillator counts per sound, mute gating, volume scaling, preference persistence, malformed JSON recovery), boundary value analysis + prototype pollution input vectors + corruption recovery, storage-security integration (prototype pollution rejection across 6 functions, corrupted localStorage recovery with NaN/Infinity/overlong keys, cross-namespace isolation, full learning lifecycle pipeline, FSRS priority over naive fallback, analytics edge cases with orphan/duplicate/out-of-order events, streak freeze boundaries) — all passing)
 - **Session UI**: `SessionBanner` component with animated progress bar, reason tags (review/bonus/weak/new), and composition pills
 - **Session Planning**: Smart auto-select via `useSessionPlanner()` hook — FSRS reviews + weak-category targeting + difficulty-matched new content + `SessionBanner` progress UI + `SessionRecap` post-session debrief with memory strength meter
 - **Deployment**: Vercel (all 10 games live)
@@ -47,7 +47,7 @@ Every game inherits from the `template/` directory:
 - **Daily Streak** — freeze system (earn 1 freeze per 10 levels, max 3)
 - **FSRS-4.5 Spaced Repetition** — scientifically-backed review scheduling with live ts-fsrs integration
 - **Mastery Gates** — Kumon-style: 90% on last 3 attempts to advance
-- **8-bit Sound Effects** — Web Audio API synthesis (no external files)
+- **Sound Engine** — Web Audio API synthesized game sounds (zero audio files). 5 distinct sound cues: ascending chime (correct), soft descending tone (incorrect — NOT a buzzer), major chord + arpeggio (celebration), shimmer rise (achievement unlock), UI tick. Mute toggle + volume slider persisted to localStorage. SSR-safe. `SoundControl` widget component included. 17 tests.
 - **CRT Overlay** — retro scanlines + neon glow UI theme
 - **Accessibility** — WCAG 2.2 AA compliant
 - **Adaptive Difficulty** — Kumon-style auto-select: promotes at 85% accuracy, demotes at 50%, per-tier rolling window
@@ -91,8 +91,8 @@ passion-learning-suite/
 └── template/                # Shared Next.js base template
     └── src/
         ├── components/      # Game UI (Timer, VictoryScreen, etc.)
-        ├── hooks/           # useProgress, useGameStats, useSoundEffects, useDifficulty, useSessionPlanner
-        ├── lib/             # Storage, difficulty engine, formatters, insights, spaced repetition
+        ├── hooks/           # useProgress, useGameStats, useDifficulty, useSessionPlanner
+        ├── lib/             # Storage, difficulty engine, formatters, insights, spaced repetition, sound engine
         ├── data/            # Curriculum data template
         └── types/           # Shared TypeScript types
 ```

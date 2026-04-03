@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0] - 2026-04-03
+
+### Added
+- **Sound engine** (`lib/soundEngine.ts`) — Web Audio API synthesized game sounds with zero external audio files. 5 distinct sound cues mapped to game events: `playCorrect()` (ascending C-E-G chime), `playIncorrect()` (soft descending Eb-C triangle wave — NOT a buzzer), `playCelebration()` (major chord burst + rising arpeggio to C6), `playAchievement()` (shimmering A-C#-E-A-C# rise), `playTick()` (subtle UI interaction). All sounds use exponential gain decay for natural instrument-like fade. Volume and mute preferences persisted to localStorage with validation (range clamping, type checking, malformed JSON recovery). SSR-safe with `typeof window` guards. Lazy AudioContext initialization with suspended-state resume.
+- **`SoundControl` component** (`components/ui/SoundControl.tsx`) — Floating sound control widget with mute toggle button (context-aware emoji: muted/low/high) and volume slider. Framer Motion entrance animation. Full keyboard accessibility with focus-visible ring. Backdrop blur glass effect matching the CRT design system.
+- **17 new tests** (328→345 total) — `soundEngine.test.ts` covering: default preference loading, saved preference retrieval, malformed JSON recovery, out-of-range volume rejection (>1, <0), non-boolean muted rejection, missing field graceful defaults, preference persistence and overwrite, oscillator count verification per sound (3 correct, 2 incorrect, 7 celebration, 1 tick, 5 achievement), mute gating (no oscillators created when muted), volume multiplier scaling on gain nodes. Web Audio API mocked via function constructor pattern.
+
 ## [0.14.0] - 2026-04-02
 
 ### Added
