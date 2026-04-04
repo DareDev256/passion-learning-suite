@@ -34,7 +34,7 @@
 - **Font**: Press Start 2P (pixel aesthetic)
 - **Spaced Repetition**: ts-fsrs (FSRS-4.5)
 - **Persistence**: localStorage (SSR-safe, configurable game ID via `configureStorage()`, input-validated against prototype pollution and injection)
-- **Testing**: Vitest (420 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API + CWE-20 sanitization, player insights + edge cases + boundary coverage, spaced repetition, session planner + edge cases, session recap messages + threshold boundaries, auto-select integration, activity heatmap, category radar geometry, retention curve (Ebbinghaus + bucket matching + SVG mapping), daily challenge (deterministic seeding + bonus XP + localStorage persistence + expiry + corruption recovery), achievements (idempotent unlock, tier gating, time-of-day mocking, localStorage validation, trophy case sorting), sound engine (Web Audio mock, oscillator counts per sound, mute gating, volume scaling, preference persistence, malformed JSON recovery), session forecast (composition math, reason tagging, percentage segments, prompt truncation, priority ordering), combo system (tier resolution + boundary transitions + peak tracking + decay timer + XP stacking), storage integrity (prototype pollution write-path rejection, checkMastery corruption recovery, analytics edge cases, streak corruption, itemScores deep validation), boundary value analysis + prototype pollution input vectors + corruption recovery, storage-security integration, edge cases — all passing)
+- **Testing**: Vitest (399 tests — storage, formatters, difficulty engine, curriculum, item scoring, enrichment integration, security hardening, social share + Web Share API + CWE-20 sanitization, player insights + edge cases + boundary coverage, spaced repetition, session planner + edge cases, session recap messages + threshold boundaries, auto-select integration, activity heatmap, category radar geometry, retention curve (Ebbinghaus + bucket matching + SVG mapping), daily challenge (deterministic seeding + bonus XP + localStorage persistence + expiry + corruption recovery), achievements (idempotent unlock, tier gating, time-of-day mocking, localStorage validation, trophy case sorting), sound engine (Web Audio mock, oscillator counts per sound, mute gating, volume scaling, preference persistence, malformed JSON recovery), session forecast (composition math, reason tagging, percentage segments, prompt truncation, priority ordering), combo system (tier resolution + boundary transitions + peak tracking + decay timer + XP stacking), storage integrity (prototype pollution write-path rejection, checkMastery corruption recovery, analytics edge cases, streak corruption, itemScores deep validation), boundary value analysis + prototype pollution input vectors + corruption recovery, storage-security integration, edge cases — all passing)
 - **Session UI**: `SessionBanner` component with animated progress bar, reason tags (review/bonus/weak/new), and composition pills
 - **Session Forecast** — Pre-session overview screen visualizing the auto-select plan: stacked composition bar, scrollable item queue with reason tags, recall bonus callout, estimated time, and "BEGIN SESSION" CTA. Builds metacognitive awareness by explaining *why* each item was selected.
 - **Session Planning**: Smart auto-select via `useSessionPlanner()` hook — FSRS reviews + weak-category targeting + difficulty-matched new content + `SessionForecast` pre-session preview + `SessionBanner` progress UI + `SessionRecap` post-session debrief with memory strength meter
@@ -93,7 +93,7 @@ passion-learning-suite/
 └── template/                # Shared Next.js base template
     └── src/
         ├── components/      # Game UI (Timer, VictoryScreen, etc.)
-        ├── hooks/           # useProgress, useGameStats, useDifficulty, useSessionPlanner, useSoundEffects
+        ├── hooks/           # useProgress, useGameStats, useDifficulty, useSessionPlanner, useSoundEffects, useCombo
         ├── lib/             # Storage, difficulty engine, formatters, insights, spaced repetition, sound engine
         ├── data/            # Curriculum data template
         └── types/           # Shared TypeScript types
@@ -246,6 +246,31 @@ Pure geometry functions for rendering SVG radar charts from category strength da
 | `pointsToPolygon(pts)` | Convert radar points to SVG `<polygon points="...">` string. |
 | `computeAxisEndpoints(count, radius, cx, cy)` | Generate grid axis line endpoints from center to edge. |
 
+### Sound Engine (`template/src/lib/soundEngine.ts`)
+
+Web Audio API synthesized game sounds — zero external audio files. SSR-safe with lazy AudioContext initialization. Mute and volume preferences validated and persisted to localStorage.
+
+| Function | Description |
+|----------|-------------|
+| `loadSoundPrefs()` | Load sound preferences from localStorage. Validates types and ranges, falls back to defaults (`{ muted: false, volume: 0.7 }`) for malformed data. SSR-safe. |
+| `saveSoundPrefs(prefs)` | Persist mute/volume preferences to localStorage. No-op on the server. |
+| `playCorrect()` | Ascending C-E-G chime (3 oscillators). |
+| `playIncorrect()` | Soft descending Eb-C triangle wave (2 oscillators). Not a buzzer — gentle by design. |
+| `playCelebration()` | Major chord burst + rising arpeggio to C6 (7 oscillators). |
+| `playTick()` | Subtle A5 sine pip for UI interactions (1 oscillator). |
+| `playAchievement()` | Shimmering A-C#-E-A-C# rise (5 oscillators). |
+
+### Activity Heatmap (`template/src/lib/activityHeatmap.ts`)
+
+Aggregates learning events into a daily activity grid for GitHub-style visualization. Pure functions — no side effects.
+
+| Function | Description |
+|----------|-------------|
+| `toDateKey(ts)` | Convert a Unix timestamp (ms) to `YYYY-MM-DD` in local time. |
+| `countToIntensity(count)` | Map event count to 0–4 intensity level: 0→none, 1–2→low, 3–5→mid, 6–12→high, 13+→max. |
+| `computeStreaks(dateKeys, today)` | Compute current streak (backwards from today) and best streak (across all dates). |
+| `buildHeatmap(events, weeks?)` | Build the full grid: `weeks` × 7 daily cells with counts, intensity, streak stats. Default 12 weeks. |
+
 ### Session Recap Messages (`template/src/lib/sessionRecapMessages.ts`)
 
 Pure functions for post-session motivational feedback. Extracted from `SessionRecap` so they're independently testable without jsdom.
@@ -280,6 +305,7 @@ All components live under `template/src/components/` and are split into `ui/` (r
 | `SessionRecap` | `plan`, `memoryStrength`, `onNewSession` | Post-session debrief: reason breakdown, animated memory strength meter with tier labels, motivational message, and action buttons. |
 | `ActivityHeatmap` | `progress`, `weeks?` | Pixel-art activity calendar (12 weeks default). Aggregates `LearningEvent` timestamps + `itemScore.lastSeen` into daily intensity grid with hover tooltips, streak/active-day stats, and staggered entrance animation. |
 | `CategoryRadar` | `strengths`, `size?` | SVG radar chart visualizing category mastery as a neon polygon with concentric grid, axis labels, animated fill, and glow effects. Requires 3+ categories. |
+| `ComboMeter` | `combo` | Spring-animated HUD showing live combo count, multiplier badge, and tier label. Tier-specific neon glow (warm→hot→fire→ultra). ARIA live region. Appears at 2+ combo, top-center positioned. |
 
 ### React Hooks
 
@@ -290,6 +316,7 @@ All components live under `template/src/components/` and are split into `ui/` (r
 | `useSoundEffects()` | 8-bit Web Audio API sounds with volume controls and localStorage persistence. |
 | `useDifficulty(items, batchSize?)` | Adaptive difficulty: auto-selects items, re-analyzes after rounds, manual override. |
 | `useSessionPlanner(items, options?)` | Smart session orchestrator: sequential item consumption with `advance()`/`skip()`, session description, progress tracking, and `replan()`. |
+| `useCombo(options?)` | In-session combo manager: feed `hit()`/`miss()` signals, get live multiplier/tier/count. 8s decay timer (configurable). Callbacks for tier-up and combo-break events. |
 
 ### Session Banner (`template/src/components/session/SessionBanner.tsx`)
 

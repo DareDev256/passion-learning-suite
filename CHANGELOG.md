@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1] - 2026-04-04
+
+### Changed
+- **JSDoc coverage** — Added documentation to 6 undocumented public functions across `soundEngine.ts` (`loadSoundPrefs`, `saveSoundPrefs`), `achievements.ts` (`getUnlocked`), and `activityHeatmap.ts` (`toDateKey`, `countToIntensity`, `computeStreaks`). Each JSDoc includes parameter descriptions, return types, and behavioral notes (SSR safety, validation, thresholds).
+- **README accuracy** — Fixed stale test count (420→399) and added `useCombo` hook + `ComboMeter` component to their respective API tables. Added missing API reference tables for Sound Engine (7 functions) and Activity Heatmap (4 functions), matching the documentation pattern used by other modules.
+- **Repo structure** — Added `useCombo` to the hooks directory listing.
+
 ## [0.17.0] - 2026-04-04
 
 ### Added

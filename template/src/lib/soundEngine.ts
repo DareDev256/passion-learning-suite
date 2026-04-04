@@ -26,6 +26,11 @@ function getContext(): AudioContext | null {
 
 // ─── Persistence ───
 
+/**
+ * Load sound preferences from localStorage.
+ * Validates types and ranges — falls back to defaults for malformed data.
+ * SSR-safe: returns defaults on the server.
+ */
 export function loadSoundPrefs(): SoundPrefs {
   if (typeof window === "undefined") return DEFAULT_PREFS;
   try {
@@ -42,6 +47,7 @@ export function loadSoundPrefs(): SoundPrefs {
   }
 }
 
+/** Persist sound preferences to localStorage. SSR-safe no-op on the server. */
 export function saveSoundPrefs(prefs: SoundPrefs): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));

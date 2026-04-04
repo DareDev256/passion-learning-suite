@@ -37,6 +37,11 @@ export const ACHIEVEMENTS: Achievement[] = [
 
 const TIER_ORDER: Record<Achievement["tier"], number> = { bronze: 0, silver: 1, gold: 2 };
 
+/**
+ * Load all unlocked achievements from localStorage.
+ * Filters out malformed entries (missing id or non-finite timestamp).
+ * SSR-safe: returns empty array on the server.
+ */
 export function getUnlocked(): UnlockedAchievement[] {
   if (typeof window === "undefined") return [];
   try {

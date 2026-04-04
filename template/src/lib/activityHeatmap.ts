@@ -21,13 +21,22 @@ export interface HeatmapData {
 
 const MS_PER_DAY = 86_400_000;
 
-/** Convert a timestamp to YYYY-MM-DD in local time. */
+/**
+ * Convert a Unix timestamp to a YYYY-MM-DD date string in local time.
+ * @param ts - Unix timestamp in milliseconds
+ * @returns ISO-style date string, e.g. "2026-04-04"
+ */
 export function toDateKey(ts: number): string {
   const d = new Date(ts);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-/** Map raw event count to a 0-4 intensity level using logarithmic scaling. */
+/**
+ * Map a raw event count to a 0–4 intensity level for heatmap coloring.
+ * Uses stepped thresholds: 0→0, 1–2→1, 3–5→2, 6–12→3, 13+→4.
+ * @param count - Number of events in a single day
+ * @returns Intensity level from 0 (inactive) to 4 (most active)
+ */
 export function countToIntensity(count: number): 0 | 1 | 2 | 3 | 4 {
   if (count === 0) return 0;
   if (count <= 2) return 1;
@@ -36,7 +45,13 @@ export function countToIntensity(count: number): 0 | 1 | 2 | 3 | 4 {
   return 4;
 }
 
-/** Compute streak (consecutive days with activity) ending at the tail of sorted date keys. */
+/**
+ * Compute current and best streaks from a set of active date keys.
+ * Current streak counts backwards from `today`. Best streak scans all dates.
+ * @param dateKeys - Set of YYYY-MM-DD strings representing active days
+ * @param today - Today's date as YYYY-MM-DD (anchor for current streak)
+ * @returns `{ current, best }` streak lengths in days
+ */
 export function computeStreaks(dateKeys: Set<string>, today: string): { current: number; best: number } {
   if (dateKeys.size === 0) return { current: 0, best: 0 };
 
