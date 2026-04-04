@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0] - 2026-04-04
+
+### Added
+- **Combo system** (`hooks/useCombo.ts`) — In-session consecutive-correct-answer multiplier with 4 escalating tiers: warm (3+ = 2× XP), hot (5+ = 3×), fire (8+ = 4×), ultra (12+ = 5×). 8-second inactivity decay timer (configurable). Peak tracking per session. Callbacks for tier-up and combo-break events. Wrong answer resets immediately. Designed to stack with existing recall multipliers (combo × recall = up to 15× XP).
+- **`ComboMeter` component** (`components/game/ComboMeter.tsx`) — Spring-animated HUD element showing live combo count, multiplier badge, and tier label. Tier-specific neon colors (warning → accent → secondary → error) with escalating glow intensity. ARIA live region for screen reader announcements. Framer Motion entrance/exit with spring physics. Appears at 2+ combo, positioned top-center (overridable via className).
+- **21 new tests** (378→399 total) — `combo.test.ts` covering: tier resolution at every boundary (0–100), multiplier scaling (1×/2×/3×/4×/5×), sequential tier transitions, boundary-1 values, negative count safety, peak tracking across multiple combo breaks, decay timer firing/cancellation/custom duration (fake timers), and XP integration math including combo × recall stacking.
+
 ## [0.16.1] - 2026-04-03
 
 ### Added
