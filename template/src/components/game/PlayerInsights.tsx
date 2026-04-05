@@ -11,6 +11,7 @@ import {
   WeakItem,
 } from "@/lib/insights";
 import { formatTime } from "@/lib/formatters";
+import { LearningVelocity } from "@/components/game/LearningVelocity";
 import { useState, useEffect } from "react";
 
 interface PlayerInsightsProps {
@@ -83,6 +84,9 @@ export function PlayerInsights({ progress, items = [] }: PlayerInsightsProps) {
           <BarFill value={analytics.retentionRate30Day} color={analytics.retentionRate30Day >= 50 ? "bg-game-success" : "bg-game-error"} />
         </div>
       </motion.section>
+
+      {/* ─── Learning Velocity ─── */}
+      <LearningVelocity />
 
       {/* ─── Category Strengths ─── */}
       {strengths.length > 0 && (

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0] - 2026-04-05
+
+### Added
+- **Learning Velocity engine** (`lib/learningVelocity.ts`) — Session-over-session performance tracking that answers "am I learning faster or just grinding?" Records per-session snapshots (items seen, accuracy, mastery conversions) to localStorage, computes mastery velocity (mastered/seen ratio), and derives trend direction via least-squares linear regression over the last 30 sessions. Four trend states: accelerating, decelerating, cruising, warming up. SSR-safe, pure functions, capped at 30 snapshots with malformed-entry filtering.
+- **`LearningVelocity` component** (`components/game/LearningVelocity.tsx`) — SVG sparkline visualization showing accuracy trend across sessions with neon glow, endpoint dot, trend indicator badge (▲ ACCELERATING / ▼ DECELERATING / ● CRUISING / ◌ WARMING UP), and three stat cells (this session mastery %, average mastery %, session count). Integrated into `PlayerInsights` dashboard. ARIA-labeled, Framer Motion animated.
+- **16 new tests** (401→417 total) — Covers `linearSlope` (positive/negative/flat/noisy), session storage (record/retrieve, empty-session rejection, 30-cap trimming, malformed JSON recovery, invalid entry filtering), and `computeVelocity` (insufficient data, improving/declining/steady trends, average/current velocity math).
+
 ## [0.17.2] - 2026-04-05
 
 ### Fixed
