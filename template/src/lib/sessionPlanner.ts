@@ -4,7 +4,7 @@
 // Pure functions — takes data in, returns a prioritized session plan.
 
 import { ContentItem } from "@/types/game";
-import { getProgress } from "@/lib/storage";
+import { getProgress, getFSRSCards } from "@/lib/storage";
 import { getReviewQueue } from "@/lib/spacedRepetition";
 import { analyzeDifficulty, selectItems } from "@/lib/difficulty";
 import { computeCategoryStrengths, findWeakestItems } from "@/lib/insights";
@@ -70,12 +70,18 @@ export function planSession(
   const queue = getReviewQueue(reviewSlots);
   const itemMap = new Map(items.map((i) => [i.id, i]));
 
+  // Build FSRS card lookup — lastReview is the authoritative review timestamp.
+  // itemScores.lastSeen can diverge when gradeItem() and updateItemScore()
+  // fire through different code paths, causing missed recall bonuses.
+  const cardMap = new Map(getFSRSCards().map((c) => [c.itemId, c]));
+
   for (const id of queue.due) {
     if (sessionItems.length >= reviewSlots) break;
     const item = itemMap.get(id);
     if (!item) continue;
-    const score = scores[id];
-    const daysSince = score ? (Date.now() - score.lastSeen) / 86_400_000 : 0;
+    const card = cardMap.get(id);
+    const lastReviewTs = card?.lastReview ?? scores[id]?.lastSeen ?? 0;
+    const daysSince = lastReviewTs > 0 ? (Date.now() - lastReviewTs) / 86_400_000 : 0;
     sessionItems.push({
       item,
       reason: daysSince >= 7 ? "recall-bonus" : "review",

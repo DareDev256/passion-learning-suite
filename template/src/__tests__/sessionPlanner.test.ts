@@ -159,6 +159,33 @@ describe("planSession", () => {
     expect(bonus[0].item.id).toBe("a1");
   });
 
+  it("flags recall-bonus from FSRS lastReview even without itemScores entry", () => {
+    // Bug: planSession used itemScores.lastSeen for recall detection, missing
+    // bonuses when only gradeItem() ran (FSRS card exists, no itemScores entry)
+    seedFSRSCards([
+      { itemId: "a1", due: now - day, stability: 1, difficulty: 5, reps: 3, lapses: 0, lastReview: now - 10 * day },
+    ]);
+    // Deliberately NO seedProgress — simulates gradeItem() without updateItemScore()
+    const plan = planSession(catalog, { sessionSize: 10, reviewRatio: 0.5 });
+    const bonus = plan.items.filter((i) => i.reason === "recall-bonus");
+    expect(bonus.length).toBeGreaterThanOrEqual(1);
+    expect(bonus[0].item.id).toBe("a1");
+  });
+
+  it("prefers FSRS lastReview over itemScores.lastSeen for recall-bonus", () => {
+    // FSRS card says last review was 10 days ago, but itemScores says 2 days ago
+    // FSRS card is authoritative — should still flag as recall-bonus
+    seedFSRSCards([
+      { itemId: "a1", due: now - day, stability: 1, difficulty: 5, reps: 3, lapses: 0, lastReview: now - 10 * day },
+    ]);
+    seedProgress({
+      a1: { correct: 5, incorrect: 1, lastSeen: now - 2 * day },
+    });
+    const plan = planSession(catalog, { sessionSize: 10, reviewRatio: 0.5 });
+    const bonus = plan.items.filter((i) => i.reason === "recall-bonus");
+    expect(bonus.length).toBeGreaterThanOrEqual(1);
+  });
+
   it("does NOT flag recent items as recall-bonus", () => {
     seedFSRSCards([
       { itemId: "a1", due: now - day, stability: 1, difficulty: 5, reps: 3, lapses: 0, lastReview: now - 2 * day },

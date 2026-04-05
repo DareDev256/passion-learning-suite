@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.17.2] - 2026-04-05
+
+### Fixed
+- **Recall-bonus detection** (`sessionPlanner.ts:planSession`) — Recall-bonus tagging (7+ day = 2× XP) now uses the FSRS card's `lastReview` timestamp as the authoritative source, falling back to `itemScores.lastSeen` only when no card exists. Previously used `itemScores.lastSeen` exclusively, which silently dropped recall bonuses when `gradeItem()` ran without a corresponding `updateItemScore()` call — the two storage paths can diverge, causing players to miss earned XP multipliers.
+- **2 new tests** (399→401 total) — Covers FSRS-only recall bonus detection (no `itemScores` entry) and FSRS `lastReview` taking precedence over stale `itemScores.lastSeen`.
+
 ## [0.17.1] - 2026-04-04
 
 ### Changed
