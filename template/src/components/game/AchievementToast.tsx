@@ -2,7 +2,8 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Achievement, getTrophyCase } from "@/lib/achievements";
-import { useState, useEffect } from "react";
+import { peek, dismiss, subscribe, pending } from "@/lib/achievementNotifier";
+import { useState, useEffect, useSyncExternalStore, useCallback } from "react";
 
 // ─── Toast: flies in when an achievement unlocks ───
 
@@ -48,6 +49,41 @@ export function AchievementToast({ achievement, onDismiss }: AchievementToastPro
             <p className="font-pixel text-[8px] text-game-accent/70 tracking-widest">ACHIEVEMENT UNLOCKED</p>
             <p className="font-pixel text-[10px] mt-1">{achievement.title}</p>
           </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ─── Self-wired toast: reads from the notification queue automatically ───
+
+/** Drop-in toast that auto-consumes from the achievementNotifier queue. */
+export function AchievementToastConnected() {
+  const getSnapshot = useCallback(() => peek(), []);
+  const current = useSyncExternalStore(subscribe, getSnapshot, () => null);
+  const count = pending();
+
+  return (
+    <AnimatePresence>
+      {current && (
+        <motion.div
+          role="alert"
+          aria-label={`Achievement unlocked: ${current.achievement.title}`}
+          className={`fixed top-6 left-1/2 z-50 -translate-x-1/2 border-2 bg-game-black/95 backdrop-blur-sm px-5 py-3 flex items-center gap-3 ${TIER_COLORS[current.achievement.tier]} ${TIER_GLOW[current.achievement.tier]}`}
+          initial={{ y: -80, opacity: 0, scale: 0.8 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: -40, opacity: 0, scale: 0.9 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          onClick={dismiss}
+        >
+          <span className="text-2xl" role="img" aria-hidden="true">{current.achievement.icon}</span>
+          <div>
+            <p className="font-pixel text-[8px] text-game-accent/70 tracking-widest">ACHIEVEMENT UNLOCKED</p>
+            <p className="font-pixel text-[10px] mt-1">{current.achievement.title}</p>
+          </div>
+          {count > 1 && (
+            <span className="font-pixel text-[7px] text-game-accent/50 ml-1">+{count - 1}</span>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

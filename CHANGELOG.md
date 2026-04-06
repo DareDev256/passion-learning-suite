@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.18.1] - 2026-04-06
+
+### Changed
+- **Achievement notification service** (`lib/achievementNotifier.ts`) — Extracted notification/display logic from the achievement system into a dedicated FIFO queue service. Manages sequential display of simultaneous unlocks with auto-dismiss (4s), sound integration (`playAchievement()` per toast), and a pub/sub API (`subscribe`/`enqueue`/`dismiss`/`clear`). Framework-agnostic core, consumed via `useSyncExternalStore` in the new `AchievementToastConnected` component which also shows a `+N` badge when multiple achievements are queued. Original `AchievementToast` preserved for backward compatibility.
+- **14 new tests** (417→431 total) — Covers enqueue (empty array rejection, single/batch queuing, sound-on-first-only), dismiss (queue advancement, empty-queue safety), auto-dismiss (4s timer, full queue drain), subscribe (enqueue/empty/unsubscribe notifications), and clear (flush + subscriber notification).
+
 ## [0.18.0] - 2026-04-05
 
 ### Added
