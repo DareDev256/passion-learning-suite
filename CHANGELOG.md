@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.18.4] - 2026-04-06
+
+### Added
+- **Auto-select integration tests** (`__tests__/autoSelect-integration.test.ts`) — 16 new tests (431→447 total) covering untested critical paths in the adaptive difficulty engine and session planner composition. Tests include: `computeRecommendation` cascade when hard<50% with medium data present (3 branches), recall-bonus 7-day boundary precision (exact boundary, just-under, FSRS vs itemScores divergence), `selectItems` boundary inputs (count=0, count>catalog, empty catalog), same-millisecond timestamp sort stability, catalog exhaustion (sessionSize > available items, estimated minutes accuracy), `hasReviewsDue` (due/empty/future-only), and three-phase deduplication under catalog pressure (item eligible for review + weak-category + new simultaneously).
+
 ## [0.18.1] - 2026-04-06
 
 ### Changed
