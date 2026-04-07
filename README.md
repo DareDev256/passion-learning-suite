@@ -305,6 +305,17 @@ Session-over-session performance tracking. Answers: "Am I learning faster, or ju
 | `linearSlope(values)` | Least-squares linear regression slope. Positive = trending up, negative = trending down. Returns 0 for fewer than 2 values. |
 | `computeVelocity()` | Full velocity report: current/average mastery velocity, trend direction (improving/declining/steady/insufficient), regression slope, and all session snapshots. Requires 3+ sessions for trend detection. |
 
+### Knowledge Decay Predictor (`template/src/lib/knowledgeDecay.ts`)
+
+Forward-looking decay engine that predicts which items will drop below retention threshold using FSRS card stability. Forecasts across 5 horizons (1, 3, 7, 14, 30 days) with per-category risk scoring and overall knowledge health. Pure functions, no side effects.
+
+| Function | Description |
+|----------|-------------|
+| `retrievability(daysSinceReview, stability)` | FSRS forgetting curve: `R = e^(-t/S)`. Returns 0–1 retention fraction. Handles zero/negative/NaN stability safely. |
+| `daysUntilDecay(stability, target?)` | Solves for days until retention drops to target (default 0.9). Mathematical inverse of retrievability. |
+| `predictDecay(cards, items, horizonDays, now?, target?)` | Predict which items will breach retention threshold within the horizon. Returns sorted at-risk items, per-category risk aggregates (critical/warning/stable), and health score (0–100). |
+| `fullDecayForecast(cards, items, now?)` | Generate forecasts across all 5 standard horizons in one call. Longer horizons always show equal or more at-risk items. |
+
 ### Achievement Notifier (`template/src/lib/achievementNotifier.ts`)
 
 FIFO notification queue bridging achievement unlocks to display. Framework-agnostic pub/sub core — consumed via `useSyncExternalStore` in `AchievementToastConnected`.

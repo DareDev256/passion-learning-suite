@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.19.0] - 2026-04-07
+
+### Added
+- **Knowledge Decay Predictor** (`lib/knowledgeDecay.ts`) — Forward-looking engine that uses FSRS card stability to predict which items will drop below the 90% retention threshold and when. Computes per-item retrievability via the forgetting curve `R = e^(-t/S)`, solves for exact days-until-threshold breach, and groups at-risk items across 5 forecast horizons (1, 3, 7, 14, 30 days). Produces per-category risk scores (critical/warning/stable) and an overall knowledge health score (0-100). Pure functions, no side effects, injectable timestamps for testing.
+- **23 new tests** (447→470 total) — Covers `retrievability` (boundary values, NaN/negative/zero stability, decay monotonicity), `daysUntilDecay` (mathematical inverse verification, edge cases), `predictDecay` (at-risk identification, zero-rep skip, urgency sort order, category aggregation, critical threshold, health score, orphan items), and `fullDecayForecast` (horizon completeness, monotonic risk growth, empty input).
+
 ## [0.18.5] - 2026-04-07
 
 ### Changed
