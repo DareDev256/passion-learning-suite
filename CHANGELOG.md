@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.18.5] - 2026-04-07
+
+### Changed
+- **README API coverage** — Added missing API reference tables for 3 lib modules that had prose descriptions but no structured function tables: `retentionCurve.ts` (6 functions: `ebbinghaus`, `bucketByInterval`, `findNearestBucket`, `computeRetentionCurve`, `retentionToSVG`, `pointsToPath`), `learningVelocity.ts` (4 functions: `getSessionSnapshots`, `recordSession`, `linearSlope`, `computeVelocity`), and `achievementNotifier.ts` (6 functions: `enqueue`, `dismiss`, `peek`, `pending`, `clear`, `subscribe`).
+- **Game Components table** — Added 4 missing components: `LearningVelocity`, `RetentionCurve`, `AchievementToast`, `SessionForecast`. All existed in the codebase but were described only in prose bullets, not in the structured props/description table developers ctrl+F for.
+
 ## [0.18.4] - 2026-04-06
 
 ### Added

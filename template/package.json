@@ -1,6 +1,6 @@
 {
   "name": "passionate-learning-game",
-  "version": "0.18.4",
+  "version": "0.18.5",
   "private": true,
   "scripts": {
     "dev": "next dev",

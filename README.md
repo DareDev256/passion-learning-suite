@@ -281,6 +281,45 @@ Pure functions for post-session motivational feedback. Extracted from `SessionRe
 | `getRecapMessage(plan)` | Select motivational text based on session composition. Recall-bonus count (≥2) overrides dominant reason. Returns an empty-session fallback when `plan.items` is empty. |
 | `memoryTier(strength)` | Map 0–100 memory strength to tier: **Strong** (≥75), **Building** (≥40), **Fragile** (>0), **New** (0). Returns `label`, `color`, and `barColor` Tailwind tokens for the strength meter. |
 
+### Retention Curve (`template/src/lib/retentionCurve.ts`)
+
+Pure functions for computing Ebbinghaus-style forgetting curves from real learning events. No side effects, no localStorage access.
+
+| Function | Description |
+|----------|-------------|
+| `ebbinghaus(day, stability?)` | Ebbinghaus forgetting model: `R = e^(-t/S)`. Returns 0–100 retention %. Default stability 3.5 (untrained learner). Guards against NaN, negative, and zero-stability inputs. |
+| `bucketByInterval(events)` | Group review events into nearest `RETENTION_DAYS` bucket (0/1/3/7/14/30) using adaptive thresholds. Returns per-bucket correct/total counts. |
+| `findNearestBucket(days)` | Match a day count to the closest retention interval. Tighter thresholds for small intervals (±0.5 for day 0–1), looser for large (±40% for day 7+). Returns `null` if no bucket matches. |
+| `computeRetentionCurve(events)` | Full retention curve: theoretical Ebbinghaus predictions + actual player data at each interval. Returns points, weighted overall retention, and total review count. |
+| `retentionToSVG(day, retention, width, height, padding?)` | Map a retention point to SVG coordinates. X = days (0–30), Y = retention (0–100). Default padding 32px. |
+| `pointsToPath(coords)` | Generate SVG `<path d="...">` string with monotone cubic bezier interpolation for smooth decay curves. |
+
+### Learning Velocity (`template/src/lib/learningVelocity.ts`)
+
+Session-over-session performance tracking. Answers: "Am I learning faster, or just grinding?" Pure functions + localStorage persistence. SSR-safe.
+
+| Function | Description |
+|----------|-------------|
+| `getSessionSnapshots()` | Load up to 30 stored session snapshots from localStorage. Filters malformed entries. SSR-safe (returns `[]` on server). |
+| `recordSession(snapshot)` | Persist a session snapshot. Caps at 30 entries (FIFO). Rejects empty sessions (`itemsSeen ≤ 0`). No-op during SSR. |
+| `linearSlope(values)` | Least-squares linear regression slope. Positive = trending up, negative = trending down. Returns 0 for fewer than 2 values. |
+| `computeVelocity()` | Full velocity report: current/average mastery velocity, trend direction (improving/declining/steady/insufficient), regression slope, and all session snapshots. Requires 3+ sessions for trend detection. |
+
+### Achievement Notifier (`template/src/lib/achievementNotifier.ts`)
+
+FIFO notification queue bridging achievement unlocks to display. Framework-agnostic pub/sub core — consumed via `useSyncExternalStore` in `AchievementToastConnected`.
+
+| Function | Description |
+|----------|-------------|
+| `enqueue(achievements)` | Push unlocked achievements into the queue. Plays `playAchievement()` sound on first entry. No-op for empty arrays. |
+| `dismiss()` | Dismiss current notification, advance to next (with sound). Clears auto-dismiss timer. |
+| `peek()` | Read the front-of-queue notification without consuming it. Returns `null` if idle. |
+| `pending()` | Number of queued notifications (including the one currently displayed). |
+| `clear()` | Flush entire queue and notify all subscribers. |
+| `subscribe(fn)` | Subscribe to queue state changes. Returns an unsubscribe function. Fires on enqueue, dismiss, and clear. |
+
+**Auto-dismiss**: Each notification auto-dismisses after 4 seconds, advancing to the next queued achievement.
+
 ### Components
 
 All components live under `template/src/components/` and are split into `ui/` (reusable primitives) and `game/` (domain-specific).
@@ -307,6 +346,10 @@ All components live under `template/src/components/` and are split into `ui/` (r
 | `ActivityHeatmap` | `progress`, `weeks?` | Pixel-art activity calendar (12 weeks default). Aggregates `LearningEvent` timestamps + `itemScore.lastSeen` into daily intensity grid with hover tooltips, streak/active-day stats, and staggered entrance animation. |
 | `CategoryRadar` | `strengths`, `size?` | SVG radar chart visualizing category mastery as a neon polygon with concentric grid, axis labels, animated fill, and glow effects. Requires 3+ categories. |
 | `ComboMeter` | `combo` | Spring-animated HUD showing live combo count, multiplier badge, and tier label. Tier-specific neon glow (warm→hot→fire→ultra). ARIA live region. Appears at 2+ combo, top-center positioned. |
+| `LearningVelocity` | — | SVG sparkline showing accuracy trend across sessions. Trend badge (▲ accelerating / ▼ decelerating / ● cruising / ◌ warming up), neon endpoint dot, 3 stat cells (this session / avg mastery / session count). |
+| `RetentionCurve` | `events` | Animated Ebbinghaus forgetting curve: theoretical decay line vs actual player retention at 0/1/3/7/14/30-day intervals. Color-coded dots (green = beating curve, red = below). Hover tooltips. |
+| `AchievementToast` | `achievement`, `onDismiss` | Single achievement notification with icon, name, description, and tier badge. Pixel-border styling with slide-in animation. |
+| `SessionForecast` | `plan`, `description`, `onStart` | Pre-session overview: stacked composition bar, scrollable item queue with reason tags, recall bonus callout, estimated time, and "BEGIN SESSION" CTA. Empty-state messaging when all caught up. |
 
 ### React Hooks
 
