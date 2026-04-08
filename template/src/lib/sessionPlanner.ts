@@ -9,21 +9,46 @@ import { getReviewQueue } from "@/lib/spacedRepetition";
 import { analyzeDifficulty, selectItems } from "@/lib/difficulty";
 import { computeCategoryStrengths, findWeakestItems } from "@/lib/insights";
 
+/**
+ * Why a particular item was selected for the session.
+ * - `review` — FSRS-scheduled spaced repetition review
+ * - `recall-bonus` — Review item with 7+ day gap, earning 2×/3× XP multiplier
+ * - `weak-category` — Targeted drill from a category with <70% accuracy
+ * - `new` — Fresh content matched to the player's difficulty tier
+ */
 export type SessionItemReason = "review" | "weak-category" | "new" | "recall-bonus";
 
+/**
+ * A single item in a session plan, annotated with why it was selected
+ * and its priority rank. Lower priority = more urgent (reviews before new content).
+ */
 export interface SessionItem {
+  /** The content item to present. */
   item: ContentItem;
+  /** Why this item was selected — drives UI tags and XP multiplier logic. */
   reason: SessionItemReason;
-  priority: number; // lower = more urgent
+  /** Sort rank: 0 = overdue review, 1 = upcoming review, 2 = weak-area drill, 3 = new content. */
+  priority: number;
 }
 
+/**
+ * Complete session plan produced by `planSession()`. Contains the ordered item
+ * list plus aggregate counts for UI composition bars and time estimates.
+ */
 export interface SessionPlan {
+  /** Ordered items for the session (sorted by priority — reviews first, new content last). */
   items: SessionItem[];
+  /** Total review items (includes recall-bonus items). */
   reviewCount: number;
+  /** Fresh content items at the player's recommended difficulty. */
   newCount: number;
+  /** Items selected from weak categories (<70% accuracy). */
   weakCategoryCount: number;
+  /** Review items eligible for 2×/3× recall bonus XP (7+ days since last review). */
   recallBonusCount: number;
+  /** Estimated session duration in minutes (`items.length × minutesPerItem`). */
   estimatedMinutes: number;
+  /** The reason with the highest item count — used for motivational messaging. */
   dominantReason: SessionItemReason;
 }
 

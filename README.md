@@ -78,6 +78,60 @@ The storage layer includes runtime hardening against client-side attacks:
 - **Deserialization hardening** — All `JSON.parse()` paths (progress, mastery, FSRS, analytics) validate structure, strip dangerous keys, and type-check every field before use
 - **Event type whitelist** — Only the 5 defined learning event types are accepted
 
+## Auto-Select Architecture
+
+The auto-select system is the template's core learning engine — it decides *what* to study and *why*, so players always get the most impactful session. Here's how the pieces connect:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    useSessionPlanner()                       │
+│  React hook — sequential item consumption, advance/skip     │
+│  Calls planSession() on mount, exposes progress + replan    │
+└─────────────┬───────────────────────────────────────────────┘
+              │ builds plan from 3 signals:
+              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    planSession()                             │
+│  lib/sessionPlanner.ts — the orchestrator                   │
+│                                                             │
+│  Phase 1: FSRS review queue (overdue first, recall bonuses) │
+│  Phase 2: Weak category drills (<70% accuracy)              │
+│  Phase 3: Difficulty-matched new content                    │
+│                                                             │
+│  Output: SessionPlan { items[], counts, estimatedMinutes }  │
+└──────┬──────────────┬──────────────────┬────────────────────┘
+       │              │                  │
+       ▼              ▼                  ▼
+┌──────────────┐ ┌──────────────┐ ┌──────────────────────┐
+│ getReview    │ │ computeCat   │ │ analyzeDifficulty()  │
+│ Queue()      │ │ Strengths()  │ │ + selectItems()      │
+│              │ │              │ │                      │
+│ spacedRep.ts │ │ insights.ts  │ │ difficulty.ts        │
+│ FSRS-4.5     │ │ per-category │ │ Kumon-style tier     │
+│ due/upcoming │ │ accuracy     │ │ ladder (easy/med/    │
+│ sorted by    │ │ strong/weak  │ │ hard), 85% promote,  │
+│ overdue days │ │ analysis     │ │ 50% demote          │
+└──────┬───────┘ └──────┬───────┘ └──────────┬───────────┘
+       │                │                     │
+       └────────────────┴─────────────────────┘
+                        │
+                        ▼
+              ┌──────────────────┐
+              │   storage.ts     │
+              │ getProgress()    │
+              │ getFSRSCards()   │
+              │ itemScores       │
+              └──────────────────┘
+```
+
+**Data flow**: `storage.ts` holds all player state → `planSession()` reads FSRS cards, item scores, and the content catalog → it delegates to the review queue, category analysis, and difficulty engine → the resulting `SessionPlan` feeds into `SessionForecast` (pre-session preview), `SessionBanner` (in-session progress), and `SessionRecap` (post-session debrief).
+
+**Key design decisions**:
+- **Reviews always come first** — FSRS overdue items get priority 0, ensuring spaced repetition isn't skipped for novelty
+- **Recall bonuses are motivational** — Items unseen for 7+ days are tagged `recall-bonus` and award 2×/3× XP, incentivizing long-term retention
+- **Weak categories get a dedicated slot** — The `weakCategoryBoost` ratio (default 30% of new slots) ensures struggling areas get targeted practice
+- **Deduplication across phases** — Items selected in Phase 1 are excluded from Phases 2 and 3 via a shared `usedIds` set
+
 ## Repo Structure
 
 ```

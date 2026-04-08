@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.1] - 2026-04-08
+
+### Changed
+- **JSDoc coverage** — Added comprehensive documentation to all 10 interfaces and 1 type alias in `types/game.ts` (`ContentItem`, `Enrichment`, `Category`, `Level`, `GameState`, `UserProgress`, `ItemScore`, `GameResults`, `MasteryCheck`, `CategoryType`). Every field now has a JSDoc comment explaining its purpose, valid ranges, and how it connects to other systems (difficulty engine, session planner, FSRS scheduler). These are the foundational types every game inherits — previously zero documentation.
+- **Session planner types** — Added JSDoc to `SessionItemReason`, `SessionItem`, and `SessionPlan` in `sessionPlanner.ts`. Reason type now documents all 4 variants with behavioral notes (XP multipliers, accuracy thresholds). `SessionPlan` fields document their computation sources.
+- **README architecture section** — Added "Auto-Select Architecture" section with ASCII data-flow diagram showing how `useSessionPlanner` → `planSession` → FSRS/insights/difficulty engine → storage layer connect. Documents the 3-phase planning algorithm, priority ordering, deduplication strategy, and key design decisions (why reviews come first, how recall bonuses motivate, why weak categories get dedicated slots).
+
 ## [0.20.0] - 2026-04-08
 
 ### Added
