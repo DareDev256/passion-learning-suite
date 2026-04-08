@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.19.1] - 2026-04-08
+
+### Added
+- **19 critical-path edge-case tests** (470→489 total) — Targets untested boundaries across three recently added modules: `knowledgeDecay` (future `lastReview` timestamps, custom `retentionTarget` boundaries, 100% decay health-score-zero scenario, Infinity guard behavior for both elapsed and stability, extremely stable card across all horizons), `learningVelocity` (`linearSlope` with empty/two-point/identical arrays, `recordSession` negative-itemsSeen rejection, zero-mastery velocity computation, varying itemsSeen density ratio), and `achievementNotifier` (manual dismiss resetting auto-dismiss timer chain, enqueue-during-auto-dismiss interleaving, duplicate achievement ID independence, full subscriber lifecycle state transitions).
+
 ## [0.19.0] - 2026-04-07
 
 ### Added
