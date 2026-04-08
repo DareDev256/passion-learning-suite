@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.20.0] - 2026-04-08
+
+### Added
+- **Knowledge Decay Panel** (`components/game/KnowledgeDecayPanel.tsx`) — Interactive FSRS-powered knowledge health dashboard that surfaces the decay predictor engine as a player-facing visualization. Features: animated SVG health ring (0-100 score with spring physics and neon glow), 5-horizon selector (1/3/7/14/30 days), per-category risk breakdown with urgency badges (critical/warning/stable), scrollable at-risk item list with color-coded retention dots and days-until-threshold countdowns. Empty-state messaging for new players. Connects directly to `knowledgeDecay.ts` engine built in v0.19.0. WCAG 2.2 AA compliant (ARIA labels, keyboard-accessible horizon buttons, `aria-pressed` states). Framer Motion stagger animations.
+- **12 new tests** (489→501 total) — `knowledgeDecayPanel.test.ts` covering panel data pipeline: empty state (no cards, unreviewed cards), health scoring (healthy cards → high score, decayed cards → low score, bounded 0-100 across all horizons), horizon switching (monotonic risk growth, valid forecasts for all standard horizons), category risk aggregation (correct grouping, critical/warning urgency thresholds), and at-risk item ordering (urgency sort, integer retention bounds).
+
 ## [0.19.1] - 2026-04-08
 
 ### Added
