@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.21.1] - 2026-04-09
+
+### Added
+- **13 critical-path edge-case tests** (517→530 total) — `autoSelect-critical-paths.test.ts` targeting untested boundaries across the auto-select pipeline: zero-timestamp FSRS `lastReview` guards (prevents false recall-bonus on never-reviewed cards), fractional slot rounding (`floor()` zeroing out review phase at low ratios), `reviewCount` arithmetic verification (review + recall-bonus sum correctness), `dominantReason` tie-breaking stability (valid reason selected when counts tie), `selectItems` oldest-seen ranking (correct ordering when all items have scores, unseen-always-first guarantee), `describeSession` weak-area-only and all-bonus sessions, and `analyzeDifficulty` single-item threshold precision at exact promote/demote boundaries (85%/84%/49%).
+
 ## [0.21.0] - 2026-04-09
 
 ### Added
