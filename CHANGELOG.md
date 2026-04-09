@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0] - 2026-04-09
+
+### Added
+- **Daily Challenge Banner** (`components/game/DailyChallengeBanner.tsx`) — Player-facing engagement component that surfaces the date-seeded daily challenge engine as an interactive banner. Features: live midnight countdown timer (60s refresh), focus category display with separator-to-space formatting, animated bonus multiplier badge (1.5×–3× with breathing glow), item count, completion state with accuracy/time/XP results and perfect score detection with spring animation, "START CHALLENGE" CTA with callback. Empty catalog returns null (no empty state noise). WCAG 2.2 AA compliant (ARIA labels, region landmark). Framer Motion stagger animations matching codebase patterns.
+- **PlayerInsights integration** — `DailyChallengeBanner` added at the top of the PlayerInsights dashboard (above Learning Pulse), with `onStartDailyChallenge` callback prop threaded through.
+- **19 new tests** (530→549 total) — `dailyChallengeBanner.test.ts` covering: challenge generation data contract (non-empty items, empty catalog hiding, displayable category, multiplier bounds, future expiry), completed state rendering data (perfect accuracy detection, non-perfect exclusion, bonusXP engine calculation match, partial completion XP), countdown timer data (hours+minutes, minutes-only, expired, zero-minute boundary), category display formatting (underscores/dots/hyphens to spaces, empty-to-MIXED fallback), and single-item catalog edge cases (1-item generation, single-category focus).
+
 ## [0.21.1] - 2026-04-09
 
 ### Added

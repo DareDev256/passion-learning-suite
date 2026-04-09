@@ -13,11 +13,13 @@ import {
 import { formatTime } from "@/lib/formatters";
 import { LearningVelocity } from "@/components/game/LearningVelocity";
 import { RecallRewards } from "@/components/game/RecallRewards";
+import { DailyChallengeBanner } from "@/components/game/DailyChallengeBanner";
 import { useState, useEffect } from "react";
 
 interface PlayerInsightsProps {
   progress: UserProgress;
-  items?: Pick<ContentItem, "id" | "category">[];
+  items?: ContentItem[];
+  onStartDailyChallenge?: (challenge: import("@/lib/dailyChallenge").DailyChallenge) => void;
 }
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
@@ -36,7 +38,7 @@ function BarFill({ value, color }: { value: number; color: string }) {
   );
 }
 
-export function PlayerInsights({ progress, items = [] }: PlayerInsightsProps) {
+export function PlayerInsights({ progress, items = [], onStartDailyChallenge }: PlayerInsightsProps) {
   const [analytics, setAnalytics] = useState<ReturnType<typeof getLearningAnalytics> | null>(null);
 
   useEffect(() => {
@@ -63,6 +65,11 @@ export function PlayerInsights({ progress, items = [] }: PlayerInsightsProps) {
 
   return (
     <motion.div className="w-full max-w-md mx-auto space-y-6" variants={stagger} initial="hidden" animate="show">
+      {/* ─── Daily Challenge ─── */}
+      {items.length > 0 && (
+        <DailyChallengeBanner items={items as ContentItem[]} onStartChallenge={onStartDailyChallenge} />
+      )}
+
       {/* ─── Overview Stats ─── */}
       <motion.section variants={fadeUp} className="pixel-border bg-game-dark/40 p-4 space-y-3">
         <h3 className="font-pixel text-[10px] text-game-primary neon-glow tracking-wider">LEARNING PULSE</h3>
