@@ -12,6 +12,7 @@ import {
 } from "@/lib/insights";
 import { formatTime } from "@/lib/formatters";
 import { LearningVelocity } from "@/components/game/LearningVelocity";
+import { RecallRewards } from "@/components/game/RecallRewards";
 import { useState, useEffect } from "react";
 
 interface PlayerInsightsProps {
@@ -87,6 +88,9 @@ export function PlayerInsights({ progress, items = [] }: PlayerInsightsProps) {
 
       {/* ─── Learning Velocity ─── */}
       <LearningVelocity />
+
+      {/* ─── Recall Rewards ─── */}
+      <RecallRewards />
 
       {/* ─── Category Strengths ─── */}
       {strengths.length > 0 && (

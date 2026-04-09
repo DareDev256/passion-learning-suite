@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.21.0] - 2026-04-09
+
+### Added
+- **Recall Rewards Engine** (`lib/recallRewards.ts`) — Pure-function engine that surfaces the delayed-reward XP system as player-facing reward windows. Scans all item scores to identify: items currently in a 7-day (2×) or 30-day (3×) recall bonus window (claimable now), and items approaching the 7-day threshold within a configurable lookahead (upcoming). Computes total claimable XP. Tier-sorted output (3× before 2×), injectable timestamps for deterministic testing.
+- **Recall Rewards Component** (`components/game/RecallRewards.tsx`) — Interactive tracker showing claimable and upcoming XP multiplier opportunities. Animated pulsing "CLAIM NOW" badges for eligible items, countdown days for upcoming windows, tier-colored reward badges (2×/3×), total claimable XP counter with breathing animation. Empty-state messaging for new players. WCAG 2.2 AA compliant (ARIA labels, region landmarks). Framer Motion stagger animations.
+- **16 new tests** (501→517 total) — `recallRewards.test.ts` covering: empty scores, zero-attempt filtering, 7-day/30-day boundary precision (exact boundary + claimable detection), upcoming window lookahead (within/outside range, custom lookahead), tier sort order (3× before 2×), daysUntil ascending sort, claimableXP calculation (mixed tiers, custom baseXP), bulk performance (100 items), and `countRewards` aggregation.
+- **PlayerInsights integration** — `RecallRewards` component added to the PlayerInsights dashboard between Learning Velocity and Category Strengths sections.
+
 ## [0.20.1] - 2026-04-08
 
 ### Changed
