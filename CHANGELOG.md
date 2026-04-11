@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0] - 2026-04-11
+
+### Added
+- **Session History Engine** (`lib/sessionHistory.ts`) — Pure-function aggregation layer that transforms stored session snapshots into a displayable timeline with accuracy trends, relative day labels, and trend detection. Reuses existing `learningVelocity` snapshot storage (no new localStorage keys). Computes: average/best accuracy, trend direction (up/down/flat/new) via linear regression on recent sessions, and reverse-chronological entry list with formatted day/time labels (Today, Yesterday, day names, M/D format).
+- **Session History Component** (`components/game/SessionHistory.tsx`) — Visual timeline showing recent sessions with per-session accuracy bars (color-coded: emerald ≥80%, amber ≥60%, rose <60%), SVG accuracy sparkline with endpoint dot, 3-stat summary bar (sessions/avg accuracy/best), and trend indicator. Stagger-animated with Framer Motion. Empty state for new players. SSR-safe via `useState` lazy initializer.
+- **20 new tests** (562→582 total) — `sessionHistory.test.ts` covering: `toDayLabel` relative formatting (today/yesterday/day-name/M-D), `toTimeLabel` AM/PM formatting (morning/afternoon/midnight/noon), `buildSessionHistory` aggregation (total count, reverse chronological ordering, average/best accuracy, improving/declining/flat/new trend detection, entry limiting, empty state, accuracyTrend ordering, dayLabel/timeLabel population).
+
 ## [0.22.1] - 2026-04-11
 
 ### Added
