@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.22.1] - 2026-04-11
+
+### Added
+- **13 phase-boundary tests** (549→562 total) — `autoSelect-phase-boundaries.test.ts` targeting untested critical paths across the auto-select pipeline: disabled review phase (`reviewRatio: 0` still produces zero reviews despite due FSRS cards), disabled weak-category phase (`weakCategoryBoost: 0` skips Phase 2 entirely), Phase 2 starvation (boost=1.0 consumes all new-item slots, starving Phase 3), weak-category internal sort order (unseen items before oldest-seen), `describeSession` all-zero plan edge case (no crash, no undefined/NaN), singular review+bonus grammar, `computeCategoryStrengths` tie classification (`correct === incorrect` counts as weak via `>=` boundary), orphaned score filtering, `findWeakestItems` timestamp edges (daysSinceReview=0 for just-seen items, default limit=5), and `computeMasteryRate` defensive boundaries (mastered > seen returns >100%, large number precision).
+
 ## [0.22.0] - 2026-04-09
 
 ### Added
