@@ -14,6 +14,7 @@ import { formatTime } from "@/lib/formatters";
 import { LearningVelocity } from "@/components/game/LearningVelocity";
 import { RecallRewards } from "@/components/game/RecallRewards";
 import { DailyChallengeBanner } from "@/components/game/DailyChallengeBanner";
+import { DifficultyPulse } from "@/components/game/DifficultyPulse";
 import { useState, useEffect } from "react";
 
 interface PlayerInsightsProps {
@@ -92,6 +93,9 @@ export function PlayerInsights({ progress, items = [], onStartDailyChallenge }: 
           <BarFill value={analytics.retentionRate30Day} color={analytics.retentionRate30Day >= 50 ? "bg-game-success" : "bg-game-error"} />
         </div>
       </motion.section>
+
+      {/* ─── Difficulty Pulse ─── */}
+      {items.length > 0 && <DifficultyPulse items={items as ContentItem[]} />}
 
       {/* ─── Learning Velocity ─── */}
       <LearningVelocity />

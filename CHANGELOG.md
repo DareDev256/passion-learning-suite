@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.24.0] - 2026-04-12
+
+### Added
+- **Difficulty Pulse Engine** (`lib/difficultyPulse.ts`) — Pure-function display layer that transforms the adaptive difficulty engine's `DifficultyProfile` into player-facing data. Computes per-tier status classification (promoted/on-track/struggling/untested) using the 85% promote and 50% demote thresholds, maps confidence levels to player-readable labels (CALIBRATING/LEARNING YOU/LOCKED IN), generates ARIA descriptions for accessibility, and produces deterministic color mappings via the game's semantic token system. Zero side effects, injectable for testing.
+- **Difficulty Pulse Component** (`components/game/DifficultyPulse.tsx`) — Metacognitive visualization that makes the invisible adaptive difficulty engine visible to players. Shows three-tier accuracy meter (easy/medium/hard) with animated fill bars, threshold markers at 50% (demote) and 85% (promote) boundaries, pulsing "ACTIVE" indicator on the recommended tier, confidence badge, and tier status icons (◇/◆/★). Integrated into PlayerInsights dashboard between Daily Challenge and Learning Velocity. WCAG 2.2 AA compliant (ARIA region, progressbar roles, description). Framer Motion animations matching codebase patterns. SSR-safe via `useEffect`.
+- **24 new tests** (582→606 total) — `difficultyPulse.test.ts` covering: `buildDifficultyPulse` (tier ordering, untested new player state, recommended tier marking, promoted/on-track/struggling status classification, exact boundary precision at 85%/50%/49%, totalAttempts aggregation, confidence label mapping, ARIA description generation for empty and populated states, all-tiers-active simultaneous state, NaN preservation for untested tiers), `tierFillPercent` (NaN→0, negative clamping, overflow clamping, passthrough), `tierColor` (all 4 status→color mappings), `tierTextColor` (all 4 status→text-color mappings).
+
 ## [0.23.0] - 2026-04-11
 
 ### Added
