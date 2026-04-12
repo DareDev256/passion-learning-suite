@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.24.1] - 2026-04-12
+
+### Added
+- **14 degenerate-input tests** (606→620 total) — `autoSelect-degenerate-inputs.test.ts` targeting untested edge conditions across the auto-select pipeline: single-slot sessions (`sessionSize: 1` with review vs new-only paths), review-only sessions (`reviewRatio: 1.0` starving Phases 2/3), due/upcoming overlap deduplication within Phase 1, multiple weak categories competing for limited slots, Phase 1 exhausting all weak-category items before Phase 2 runs (usedIds filtering), partial options merge preserving defaults (`minutesPerItem`-only override, no-options invocation), `describeSession` mixed-session grammar (all three parts joined, singular weak-area drill, singular new item), and `estimatedMinutes` ceiling rounding precision (fractional minutesPerItem × small item counts).
+
 ## [0.24.0] - 2026-04-12
 
 ### Added
