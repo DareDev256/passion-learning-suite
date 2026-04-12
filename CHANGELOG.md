@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.24.2] - 2026-04-12
+
+### Added
+- **13 contract-invariant tests** (620→633 total) — `autoSelect-contract-invariants.test.ts` targeting previously untested structural contracts across the auto-select pipeline: phantom FSRS card filtering (due and upcoming items referencing items absent from catalog are silently skipped without crash), weak category 70% boundary precision (`accuracy < 70` correctly excludes exactly-70% categories while including 69%), output priority sort monotonicity (reviews→upcoming→weak→new ordering verified via non-decreasing priority assertion), `selectItems` implicit profile computation (omitting the profile argument triggers internal `analyzeDifficulty` call), `findWeakestItems` ratio-tie daysSinceReview tiebreaker (equal-ratio items sorted by most days since review first), `computeCategoryStrengths` zero-attempt score exclusion (items with `correct=0, incorrect=0` don't create phantom categories), `computeCategoryStrengths` descending accuracy sort order verification, `analyzeDifficulty` confidence level boundaries (0 attempts→"new", 1-4→"low", 5+→"high" matching WINDOW=5), and Phase 3 bypass verification (when Phases 1+2 fill all session slots, `remaining=0` prevents any new-content selection).
+
 ## [0.24.1] - 2026-04-12
 
 ### Added
