@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.26.0] - 2026-04-13
+
+### Added
+- **Study Cadence Analyzer** (`lib/studyCadence.ts`) — Research-backed session timing analysis that answers "when should I study next?" Computes sessions-per-week frequency against the optimal 3-5/week range (cited in MASTER_SPEC from peer-reviewed meta-analysis), scores regularity via coefficient of variation (0-100 scale detecting bursty vs evenly-spaced patterns), recommends next study time using gap-based scheduling, and classifies cadence as optimal/under-practicing/over-practicing/irregular/new. Reuses `learningVelocity`'s existing `SessionSnapshot` storage — zero new localStorage keys. Pure functions: `computeGaps()` (inter-session gap extraction), `scoreRegularity()` (CV-based evenness scoring), `computeWeeklyRate()` (actual-span frequency), `recommendNextTime()` (adaptive gap targeting), `classifyCadence()` (threshold classification), `analyzeCadence()` (full report builder). Exports research constants `OPTIMAL_MIN_WEEKLY` (3) and `OPTIMAL_MAX_WEEKLY` (5).
+- **37 new tests** (633→670 total) — `studyCadence.test.ts` covering: `computeGaps` (empty/single/multi timestamps, unsorted input, sub-day precision), `scoreRegularity` (empty/single/perfect/near-even/bursty/degenerate-zero gaps), `computeWeeklyRate` (empty/single/daily/every-other-day/same-day sessions), `recommendNextTime` (overdue→now, never-past, under-practicing gap shortening, over-practicing gap lengthening), `cadenceMessage` (all 5 rating messages), `classifyCadence` (all 5 ratings + boundary precision at 3/week and 5/week), `analyzeCadence` integration (zero sessions, well-spaced optimal, bursty irregular detection, non-negative hoursUntilNext, daysSinceLastSession accuracy).
+
 ## [0.25.0] - 2026-04-13
 
 ### Changed
