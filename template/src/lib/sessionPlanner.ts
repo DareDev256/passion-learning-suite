@@ -2,12 +2,22 @@
 // The auto-select brain: orchestrates FSRS reviews, adaptive difficulty,
 // and category weakness targeting into one optimal study session.
 // Pure functions — takes data in, returns a prioritized session plan.
+// Core auto-select primitives live in autoSelectCore.ts for reuse.
 
 import { ContentItem } from "@/types/game";
 import { getProgress, getFSRSCards } from "@/lib/storage";
 import { getReviewQueue } from "@/lib/spacedRepetition";
 import { analyzeDifficulty, selectItems } from "@/lib/difficulty";
-import { computeCategoryStrengths, findWeakestItems } from "@/lib/insights";
+import { computeCategoryStrengths } from "@/lib/insights";
+import {
+  allocateSlots,
+  classifyReviewReason,
+  sortByWeakPriority,
+  countByReason,
+  findDominantReason,
+  estimateDuration,
+  WEAK_CATEGORY_THRESHOLD,
+} from "@/lib/autoSelectCore";
 
 /**
  * Why a particular item was selected for the session.
@@ -88,8 +98,9 @@ export function planSession(
   const usedIds = new Set<string>();
 
   const sessionItems: SessionItem[] = [];
-  const reviewSlots = Math.floor(opts.sessionSize * opts.reviewRatio);
-  const newSlots = opts.sessionSize - reviewSlots;
+  const { reviewSlots, weakSlots } = allocateSlots(
+    opts.sessionSize, opts.reviewRatio, opts.weakCategoryBoost,
+  );
 
   // ── Phase 1: FSRS review items (overdue first) ──
   const queue = getReviewQueue(reviewSlots);
@@ -105,13 +116,11 @@ export function planSession(
     const item = itemMap.get(id);
     if (!item) continue;
     const card = cardMap.get(id);
-    const lastReviewTs = card?.lastReview ?? scores[id]?.lastSeen ?? 0;
-    const daysSince = lastReviewTs > 0 ? (Date.now() - lastReviewTs) / 86_400_000 : 0;
-    sessionItems.push({
-      item,
-      reason: daysSince >= 7 ? "recall-bonus" : "review",
-      priority: 0,
-    });
+    const reason = classifyReviewReason(
+      card?.lastReview ?? 0,
+      scores[id]?.lastSeen ?? 0,
+    );
+    sessionItems.push({ item, reason, priority: 0 });
     usedIds.add(id);
   }
 
@@ -126,23 +135,16 @@ export function planSession(
   }
 
   // ── Phase 2: Weak category targeting ──
-  const weakSlots = Math.floor(newSlots * opts.weakCategoryBoost);
   const strengths = computeCategoryStrengths(items, scores);
   const weakCategories = strengths
-    .filter((s) => s.accuracy < 70 && s.totalItems > 0)
+    .filter((s) => s.accuracy < WEAK_CATEGORY_THRESHOLD && s.totalItems > 0)
     .map((s) => s.categoryId);
 
   if (weakCategories.length > 0) {
-    const weakItems = items
-      .filter((i) => weakCategories.includes(i.category) && !usedIds.has(i.id))
-      .sort((a, b) => {
-        const sa = scores[a.id];
-        const sb = scores[b.id];
-        if (!sa && sb) return -1; // unseen first
-        if (sa && !sb) return 1;
-        if (!sa && !sb) return 0;
-        return sa.lastSeen - sb.lastSeen; // oldest seen first
-      });
+    const candidates = items.filter(
+      (i) => weakCategories.includes(i.category) && !usedIds.has(i.id),
+    );
+    const weakItems = sortByWeakPriority(candidates, scores);
 
     for (const item of weakItems.slice(0, weakSlots)) {
       sessionItems.push({ item, reason: "weak-category", priority: 2 });
@@ -166,11 +168,8 @@ export function planSession(
   }
 
   // ── Build plan summary ──
-  const counts = { review: 0, new: 0, "weak-category": 0, "recall-bonus": 0 };
-  for (const si of sessionItems) counts[si.reason]++;
-
-  const dominantReason = (Object.entries(counts) as [SessionItemReason, number][])
-    .sort((a, b) => b[1] - a[1])[0][0];
+  const counts = countByReason(sessionItems);
+  const dominantReason = findDominantReason(counts);
 
   return {
     items: sessionItems.sort((a, b) => a.priority - b.priority),
@@ -178,7 +177,7 @@ export function planSession(
     newCount: counts.new,
     weakCategoryCount: counts["weak-category"],
     recallBonusCount: counts["recall-bonus"],
-    estimatedMinutes: Math.ceil(sessionItems.length * opts.minutesPerItem),
+    estimatedMinutes: estimateDuration(sessionItems.length, opts.minutesPerItem),
     dominantReason,
   };
 }

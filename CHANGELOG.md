@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.25.0] - 2026-04-13
+
+### Changed
+- **Auto-select core extraction** (`lib/autoSelectCore.ts`) — Extracted 6 pure utility functions from `sessionPlanner.ts` into a dedicated, storage-free module: `allocateSlots()` (phase slot computation), `classifyReviewReason()` (recall-bonus detection with FSRS-first timestamp authority), `sortByWeakPriority()` (unseen-first/oldest-seen ordering for weak-category selection), `countByReason()` (session item tallying), `findDominantReason()` (motivational messaging signal), and `estimateDuration()` (ceiling-rounded time estimate). Exports named constants `MS_PER_DAY`, `RECALL_BONUS_THRESHOLD_DAYS`, and `WEAK_CATEGORY_THRESHOLD` replacing magic numbers. `sessionPlanner.ts` now imports and delegates to these primitives — all 633 tests pass unchanged, confirming behavioral equivalence.
+
 ## [0.24.2] - 2026-04-12
 
 ### Added

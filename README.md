@@ -102,7 +102,15 @@ The auto-select system is the template's core learning engine — it decides *wh
 │  Phase 3: Difficulty-matched new content                    │
 │                                                             │
 │  Output: SessionPlan { items[], counts, estimatedMinutes }  │
-└──────┬──────────────┬──────────────────┬────────────────────┘
+└──────┬──────────┬──────────────────┬────────────────────────┘
+       │          │                  │
+       │    ┌─────┴──────────────────┴──────────────────┐
+       │    │         autoSelectCore.ts                  │
+       │    │  Pure reusable primitives (no storage):    │
+       │    │  allocateSlots · classifyReviewReason      │
+       │    │  sortByWeakPriority · countByReason        │
+       │    │  findDominantReason · estimateDuration     │
+       │    └───────────────────────────────────────────┘
        │              │                  │
        ▼              ▼                  ▼
 ┌──────────────┐ ┌──────────────┐ ┌──────────────────────┐
@@ -134,6 +142,7 @@ The auto-select system is the template's core learning engine — it decides *wh
 - **Recall bonuses are motivational** — Items unseen for 7+ days are tagged `recall-bonus` and award 2×/3× XP, incentivizing long-term retention
 - **Weak categories get a dedicated slot** — The `weakCategoryBoost` ratio (default 30% of new slots) ensures struggling areas get targeted practice
 - **Deduplication across phases** — Items selected in Phase 1 are excluded from Phases 2 and 3 via a shared `usedIds` set
+- **Core primitives are storage-free** — `autoSelectCore.ts` contains pure functions (slot allocation, recall-bonus classification, weak-priority sorting, session counting) with zero storage/side-effect dependencies, making them independently testable and composable by any module
 
 ## Repo Structure
 
