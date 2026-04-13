@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.27.0] - 2026-04-13
+
+### Added
+- **Mastery Milestone Predictor** (`lib/masteryMilestones.ts`) — Forward-looking engine that projects per-category mastery completion timelines. Addresses MASTER_SPEC "time-to-mastery" learning analytics. Computes `isItemMastered()` using dual-threshold check (≥80% accuracy AND ≥3 attempts, preventing single-correct flukes), `classifyStatus()` mapping mastery percent to 5-tier status ladder (locked → emerging → progressing → near-mastery → mastered), `projectSessions()` estimating remaining sessions from current velocity (sentinel -1 for unprojectable), `computeCategoryMilestones()` grouping items by category with mastery counts and status classification, and `buildMilestoneReport()` producing the full projection: per-category milestones with ETAs, overall completion percentage, next-closest milestone to reach, and total sessions to master everything. Pure functions — zero storage access, zero side effects. Composes with existing `learningVelocity` (mastery rate input) and `insights` (category strength data).
+- **33 new tests** (670→703 total) — `masteryMilestones.test.ts` covering: `isItemMastered` (undefined score, below-minimum attempts, ratio boundary at 0.8, perfect scores, zero-correct, exact MIN_ATTEMPTS_FOR_MASTERY boundary), `classifyStatus` (all 5 tiers including boundary values 0/1/30/31/70/71/99/100, negative input), `projectSessions` (zero remaining, zero/negative/NaN/Infinity mastery rate, ceiling rounding, exact division, fractional rate), `computeCategoryMilestones` (empty items, single-category mastery counting, no-score items as unmastered, descending sort by mastery percent, multi-category grouping), `buildMilestoneReport` (overall progress aggregation, next milestone identification as closest-to-complete, null nextMilestone when all mastered, session estimate projection, -1 estimates at zero rate, empty curriculum graceful handling, constant sanity checks).
+
 ## [0.26.0] - 2026-04-13
 
 ### Added
