@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.27.1] - 2026-04-15
+
+### Added
+- **35 autoSelectCore unit tests** (703→738 total) — `autoSelectCore-unit.test.ts` providing first direct unit test coverage for all 6 exported `autoSelectCore.ts` functions that were previously only tested indirectly through `planSession()` integration tests. `allocateSlots` (zero session size, fractional floor rounding, reviewRatio extremes 0/1.0, weakCategoryBoost 1.0 converting all new slots), `classifyReviewReason` (FSRS-first timestamp precedence over scoreLastSeen, exact 7-day boundary returns recall-bonus via `>=`, both-zero fallback producing `daysSince=0` → review, 365-day recall-bonus), `sortByWeakPriority` (unseen-before-seen ordering, oldest-seen-first among seen items, stable sort preserving order for tied unseen items, empty array, immutability — original array not mutated), `countByReason` (mixed 5-item tally, empty array all-zero baseline, single-reason-only accumulation), `findDominantReason` (clear winner, all-zero counts still returning valid reason without crash, 4-way tie determinism verified via double-call equality, single non-zero reason), `estimateDuration` (fractional ceiling rounding, exact whole number passthrough, zero items, zero minutesPerItem, sub-minute single item rounding to 1, large session correctness). Constants (`MS_PER_DAY`, `RECALL_BONUS_THRESHOLD_DAYS`, `WEAK_CATEGORY_THRESHOLD`) verified.
+
 ## [0.27.0] - 2026-04-13
 
 ### Added
