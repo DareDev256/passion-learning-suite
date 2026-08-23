@@ -1,8 +1,8 @@
 # Passionate Learning Suite
 
-10 web-based educational games that teach Gen AI concepts and tech fundamentals through gameplay. Each game is a standalone Next.js 16 app built from a shared template with unique mechanics, curriculum, and theme.
+7 web-based educational games that teach Gen AI concepts and tech fundamentals through gameplay. Each game is a standalone Next.js 16 app built from a shared template with unique mechanics, curriculum, and theme.
 
-[![Games](https://img.shields.io/badge/Games-10-6C63FF?style=flat-square)](https://github.com/DareDev256/passion-learning-suite)
+[![Games](https://img.shields.io/badge/Games-7-6C63FF?style=flat-square)](https://github.com/DareDev256/passion-learning-suite)
 [![Deployed](https://img.shields.io/badge/Deployed-Vercel-000000?style=flat-square&logo=vercel)](https://vercel.com)
 [![Stack](https://img.shields.io/badge/Stack-Next.js_16-000000?style=flat-square&logo=next.js)](https://nextjs.org)
 
@@ -10,21 +10,18 @@
 
 | # | Game | Repo | Live | What It Teaches |
 |---|------|------|------|-----------------|
-| 1 | **Prompt Craft** | [prompt-craft](https://github.com/DareDev256/prompt-craft) | [Play](https://prompt-craft-jet.vercel.app) | Prompt engineering — structure, constraints, iterative refinement |
-| 2 | **Token Prophet** | [token-prophet](https://github.com/DareDev256/token-prophet) | [Play](https://token-prophet.vercel.app) | How LLMs think — next-token prediction, probability, context windows |
-| 3 | **Hallucination Hunter** | [hallucination-hunter](https://github.com/DareDev256/hallucination-hunter) | [Play](https://hallucination-hunter.vercel.app) | AI output evaluation — spot factual errors, verify claims |
-| 4 | **Bias Buster** | [bias-buster](https://github.com/DareDev256/bias-buster) | [Play](https://bias-buster-five.vercel.app) | AI ethics — detect and measure bias across demographics |
-| 5 | **Tool Match** | [tool-match](https://github.com/DareDev256/tool-match) | [Play](https://tool-match-sable.vercel.app) | AI tool selection — match user intents to the right model/tool |
-| 6 | **Red Team Arena** | [red-team-arena](https://github.com/DareDev256/red-team-arena) | [Play](https://red-team-arena.vercel.app) | AI safety — ethical prompt injection, jailbreaks, defense |
+| 1 | **Prompt Craft** | _in this suite_ | [Play](https://prompt-craft-jet.vercel.app) | Prompt engineering — structure, constraints, iterative refinement |
+| 2 | **Token Prophet** | _in this suite_ | [Play](https://token-prophet.vercel.app) | How LLMs think — next-token prediction, probability, context windows |
+| 3 | **Hallucination Hunter** | _in this suite_ | [Play](https://hallucination-hunter.vercel.app) | AI output evaluation — spot factual errors, verify claims |
+| 4 | **Bias Buster** | _in this suite_ | [Play](https://bias-buster-five.vercel.app) | AI ethics — detect and measure bias across demographics |
+| 5 | **Tool Match** | _in this suite_ | [Play](https://tool-match-sable.vercel.app) | AI tool selection — match user intents to the right model/tool |
+| 6 | **Red Team Arena** | _in this suite_ | [Play](https://red-team-arena.vercel.app) | AI safety — ethical prompt injection, jailbreaks, defense |
 
-## Tech Fundamentals Games (4)
+## Tech Fundamentals Games (1)
 
 | # | Game | Repo | Live | What It Teaches |
 |---|------|------|------|-----------------|
-| 7 | **API Architect** | [api-architect](https://github.com/DareDev256/api-architect) | [Play](https://api-architect-gamma.vercel.app) | REST API design — methods, endpoints, status codes, debugging |
-| 8 | **Netrunner** | [netrunner](https://github.com/DareDev256/netrunner) | [Play](https://netrunner-gilt.vercel.app) | Networking — OSI layers, subnetting, ports, troubleshooting |
-| 9 | **CyberShield** | [cybershield](https://github.com/DareDev256/cybershield) | [Play](https://cybershield.vercel.app) | Cybersecurity — threats, defense, cryptography, incident response |
-| 10 | **Circuit Prophet** | [circuit-prophet](https://github.com/DareDev256/circuit-prophet) | [Play](https://circuit-prophet.vercel.app) | Hardware & electronics — Ohm's Law, logic gates, CPU architecture |
+| 7 | **Circuit Prophet** | _source not published_ | [Play](https://circuit-prophet.vercel.app) | Hardware & electronics — Ohm's Law, logic gates, CPU architecture |
 
 ## Shared Tech Stack
 
