@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.27.2] - 2026-08-31
+
+### Added
+- **LICENSE (MIT)** — the README had claimed MIT since the first commit but the repository shipped no LICENSE file, so GitHub reported no licence and nobody could legally reuse the template that is this repository's whole purpose. Copyright line matches the sibling repos.
+
+### Fixed
+- **Repo column in the games table** said "in this suite" for six games. No game source is tracked here: the tree is `template/`, `specs/`, `MASTER_SPEC.md` and `docs/`. Now reads "source not published", which is what row 7 already said.
+- **Deployment line** claimed 10 live games against the 7 this README documents. Corrected to 7; all 7 Play links return 200.
+- **738-test figure** was correct but buried inside a single thousand-word bullet. It now leads the bullet with the command that reproduces it, and the enumeration moved into a collapsed block.
+
 ## [0.27.1] - 2026-04-15
 
 ### Added
